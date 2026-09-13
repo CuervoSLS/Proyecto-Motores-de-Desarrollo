@@ -145,6 +145,7 @@ public class PlayerMovement : MonoBehaviour
             }
             else
             {
+                _sprinting = true;
                 _speed = _normalSpeed;
             }
         }
@@ -199,6 +200,10 @@ public class PlayerMovement : MonoBehaviour
     {
         print("chau de vuelta");
         _liane = false;
+        if(_sprinting == true)
+        {
+            _speed = _sprintSpeed;
+        }
     }
     public void CancelSlide()
     {
