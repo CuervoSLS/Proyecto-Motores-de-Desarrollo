@@ -9,10 +9,12 @@ using static UnityEngine.InputSystem.InputAction;
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Movimiento")]
-    [SerializeField] private float _normalSpeed = 5f;
+    [SerializeField] private float _normalSpeed = 7.5f;
     [SerializeField] private float _sprintSpeed = 15f;
 
-    [SerializeField] private float _lianeSpeed = 2.5f;
+
+    [SerializeField] private float _lianeSpeed = 5f;
+    [SerializeField] private float _slideSpeed = 17f;
 
     [Header("Rotacion")]
 
@@ -22,6 +24,8 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float _jumpForce = 5f;
     [SerializeField] private float _gravity = -9.8f;
 
+    [SerializeField] private float _gravityLiane = -9.8f;
+
     [Header("Carama (modo hijo")]
 
     [SerializeField] private Transform _camaraTransform;
@@ -30,12 +34,14 @@ public class PlayerMovement : MonoBehaviour
 
     [SerializeField] private bool _liane = false;
     public CharacterController _controller;
-    private float _speed;
+    [SerializeField] private float _speed;
     private Vector2 _move;
     private float _rotate;
     private Vector2 _look;
     private float _verticalVelocity;
     private float _pitch;
+    private bool _sprinting = false;
+    private bool _sliding = false;
 
     private void Awake()
     {
@@ -63,8 +69,9 @@ public class PlayerMovement : MonoBehaviour
     {
         if (_liane == true) //comprueba si esta en liana
         {
-           if (Keyboard.current.shiftKey.isPressed == false) //comprueba el shift ya que cambia el comportamiento
+           if (Keyboard.current.shiftKey.isPressed == false) //comprueba el shift ya que con eso podes moverte libremente por la liana
             {
+                _verticalVelocity = 0;
                 _speed = _lianeSpeed;
                 Vector3 movement = transform.right * _move.x;
 
@@ -90,7 +97,14 @@ public class PlayerMovement : MonoBehaviour
 
         move = move.normalized * _speed;
 
-        _verticalVelocity += _gravity * Time.deltaTime;
+        if(_liane == true) //comprueba si esta en liana para asi hacer que caiga mas lento si esta en esta
+        {
+            _verticalVelocity += _gravityLiane * Time.deltaTime;
+        }
+        else
+        {
+            _verticalVelocity += _gravity * Time.deltaTime;
+        }
         move.y = _verticalVelocity;
         _controller.Move(move * Time.deltaTime);
     }
@@ -123,22 +137,56 @@ public class PlayerMovement : MonoBehaviour
     public void OnSprint(InputAction.CallbackContext context)
     {
         if (context.performed)
-            if(_controller.isGrounded == true || _liane == true)
+        {
+            if (_liane == false)
             {
                 _speed = _sprintSpeed;
+                _sprinting = true;
             }
-        else if (context.canceled)
-            if (_controller.isGrounded == true)
+            else
             {
                 _speed = _normalSpeed;
             }
+        }
+        else if (context.canceled)
+            {
+                _sprinting = false;
+                if (_sliding == false)
+                {
+                    _speed = _normalSpeed;
+                }
                 
+            }
+    }
+    public void OnSlide(InputAction.CallbackContext context)
+    {
+        print("te detecte");
+        if (context.performed)
+        {
+            print("JIJI DE VUELTA");
+            if(_sprinting == true && _controller.isGrounded)
+            {
+                print("estoy slidenado");
+                _speed = _slideSpeed;
+                _sliding = true;
+                _sprinting = false;
+                Invoke("CancelSlide",1);
+            }
+        }
     }
     public void OnJump(InputAction.CallbackContext context)
     {
         if(context.performed && _controller.isGrounded || context.performed && _liane == true)
         {
+
             _verticalVelocity = Mathf.Sqrt(_jumpForce * -2f * _gravity);
+            if (_sliding == true)
+            {
+                _sliding = false;
+                CancelInvoke("CancelSlide");
+                _speed = _sprintSpeed;
+                _sprinting = true;
+            }
         }
     }
     public void OnLiane()
@@ -151,6 +199,20 @@ public class PlayerMovement : MonoBehaviour
     {
         print("chau de vuelta");
         _liane = false;
+    }
+    public void CancelSlide()
+    {
+        print("ahora no");
+
+        _sliding = false;
+        if (_sprinting == true)
+        {
+            _speed = _sprintSpeed;
+        }
+        else
+        {
+            _speed = _normalSpeed;
+        }
     }
 }
 
