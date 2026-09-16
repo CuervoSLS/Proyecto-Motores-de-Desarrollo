@@ -68,6 +68,7 @@ public class PlayerMovement : MonoBehaviour
     private bool _sprinting = false;
     private bool _sliding = false;
 
+
     private void Awake()
     {
         _controller = GetComponent<CharacterController>();
@@ -322,6 +323,26 @@ public class PlayerMovement : MonoBehaviour
         else
         {
             _speed = _normalSpeed;
+        }
+    }
+
+    public bool _enLianaMovil = false;
+    public Vector3 _velocidadLiana = Vector3.zero;
+
+    private void LateUpdate()
+    {
+        if (_enLianaMovil && _controller.enabled)
+        {
+            _controller.Move(_velocidadLiana * Time.deltaTime);
+        }
+    }
+
+    public void RecibirImpulsoLiana(Vector3 impulso)
+    {
+        _verticalVelocity += impulso.y;
+        if (_controller.enabled)
+        {
+            _controller.Move(new Vector3(impulso.x, 0f, impulso.z) * Time.deltaTime);
         }
     }
 }
