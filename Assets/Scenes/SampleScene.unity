@@ -5894,7 +5894,7 @@ GameObject:
   - component: {fileID: 962936227}
   - component: {fileID: 962936226}
   m_Layer: 6
-  m_Name: Plane (1)
+  m_Name: Piso
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
