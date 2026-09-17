@@ -10382,6 +10382,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1927950720274902101, guid: e07a56d7e5dddb04c855564f7a2763ad, type: 3}
+      propertyPath: m_ActionEvents.Array.size
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 1927950720274902101, guid: e07a56d7e5dddb04c855564f7a2763ad, type: 3}
+      propertyPath: m_ActionEvents.Array.data[5].m_ActionId
+      value: acf5f9c6-87cc-45e3-ba49-5240045bd7d8
+      objectReference: {fileID: 0}
+    - target: {fileID: 1927950720274902101, guid: e07a56d7e5dddb04c855564f7a2763ad, type: 3}
+      propertyPath: m_ActionEvents.Array.data[5].m_ActionName
+      value: 'Movement/Shoot[/Mouse/leftButton]'
+      objectReference: {fileID: 0}
     - target: {fileID: 3515561633379582246, guid: e07a56d7e5dddb04c855564f7a2763ad, type: 3}
       propertyPath: m_LocalPosition.x
       value: 9.69
@@ -10421,22 +10433,6 @@ PrefabInstance:
     - target: {fileID: 3515561633379582246, guid: e07a56d7e5dddb04c855564f7a2763ad, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7026178301244601489, guid: e07a56d7e5dddb04c855564f7a2763ad, type: 3}
-      propertyPath: _maxJumps
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7026178301244601489, guid: e07a56d7e5dddb04c855564f7a2763ad, type: 3}
-      propertyPath: _wallMask.m_Bits
-      value: 128
-      objectReference: {fileID: 0}
-    - target: {fileID: 7026178301244601489, guid: e07a56d7e5dddb04c855564f7a2763ad, type: 3}
-      propertyPath: _groundMask.m_Bits
-      value: 64
-      objectReference: {fileID: 0}
-    - target: {fileID: 7026178301244601489, guid: e07a56d7e5dddb04c855564f7a2763ad, type: 3}
-      propertyPath: _groundCheckDistance
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7512575360402513233, guid: e07a56d7e5dddb04c855564f7a2763ad, type: 3}
       propertyPath: m_Name
@@ -10501,7 +10497,7 @@ PrefabInstance:
       objectReference: {fileID: 443613713}
     - target: {fileID: 3890770880059980886, guid: 8ee7bb44a57bfed4aa021f8ec1b7a2a8, type: 3}
       propertyPath: m_VersionIndex
-      value: 2589
+      value: 2592
       objectReference: {fileID: 0}
     - target: {fileID: 4102139423203056363, guid: 8ee7bb44a57bfed4aa021f8ec1b7a2a8, type: 3}
       propertyPath: m_Name
