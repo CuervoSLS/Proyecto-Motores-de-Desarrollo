@@ -16,7 +16,10 @@ public class PlayerSpawn : MonoBehaviour
     }
     public void Respawn()
     {
+        CharacterController controller = GetComponent<CharacterController>();
+        controller.enabled = false;
         transform.position = spawn.position;
+        controller.enabled = true;
     }
     public void NewSpawn(Transform newSpawn)
     {
