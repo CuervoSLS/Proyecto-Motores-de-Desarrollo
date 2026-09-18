@@ -253,13 +253,10 @@ public class PlayerMovement : MonoBehaviour
     }
     public void OnSlide(InputAction.CallbackContext context)
     {
-        print("te detecte");
         if (context.performed)
         {
-            print("JIJI DE VUELTA");
             if (_sprinting == true && _controller.isGrounded)
             {
-                print("estoy slidenado");
                 _speed = _slideSpeed;
                 _sliding = true;
                 _sprinting = false;
@@ -299,12 +296,10 @@ public class PlayerMovement : MonoBehaviour
     public void OnLiane()
     {
 
-        print("hola de vuelta");
         _liane = true;
     }
     public void OffLiane()
     {
-        print("chau de vuelta");
         _liane = false;
         if (_sprinting == true)
         {
@@ -313,7 +308,6 @@ public class PlayerMovement : MonoBehaviour
     }
     public void CancelSlide()
     {
-        print("ahora no");
 
         _sliding = false;
         if (_sprinting == true)

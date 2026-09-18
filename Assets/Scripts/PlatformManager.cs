@@ -4,7 +4,6 @@ using UnityEngine;
 public class PlatformManager : MonoBehaviour
 {
     public static PlatformManager instance = null;
-
     [SerializeField] GameObject platformPrefab;
 
     void Awake()

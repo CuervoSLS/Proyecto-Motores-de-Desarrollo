@@ -27,7 +27,6 @@ public class Liane : MonoBehaviour
 
     void Start()
     {
-        print("COLISIONO");
         _posicionInicial = transform.position;
         _rotacionInicial = transform.rotation;
         _posicionAnterior = transform.position;
@@ -83,12 +82,10 @@ public class Liane : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        print("COLISIONO");
         if (other.CompareTag("Player"))
         {
-            print("hola");
             PlayerMovement controller = other.gameObject.GetComponent<PlayerMovement>();
-            controller.Invoke("OnLiane", 0);
+            controller.OnLiane();
 
             if (_lianaQuieta == false)
             {
@@ -104,7 +101,6 @@ public class Liane : MonoBehaviour
     {
         if (other.gameObject.CompareTag("Player"))
         {
-            print("chau");
             PlayerMovement controller = other.gameObject.GetComponent<PlayerMovement>();
             controller.Invoke("OffLiane", 0);
 
