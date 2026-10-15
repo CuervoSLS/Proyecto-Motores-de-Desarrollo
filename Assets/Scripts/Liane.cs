@@ -6,111 +6,101 @@ public class Liane : MonoBehaviour
 
     [SerializeField] private bool _lianaQuieta = true;
 
+    [Header("Movimiento")]
     [SerializeField] private bool _mover = false;
     [SerializeField] private EjeTransform _ejeMovimiento = EjeTransform.Y;
     [SerializeField] private float _movimientoMin = 0f;
     [SerializeField] private float _movimientoMax = 3f;
     [SerializeField] private float _velocidadMovimiento = 2f;
 
-    [SerializeField] private bool _rotar = false;
-    [SerializeField] private EjeTransform _ejeRotacion = EjeTransform.Y;
-    [SerializeField] private float _rotacionMin = 0f;
-    [SerializeField] private float _rotacionMax = 45f;
-    [SerializeField] private float _velocidadRotacion = 30f;
+    [Header("Contacto")]
+    [SerializeField] private float _tiempoSinContacto = 0.15f;
 
     private Vector3 _posicionInicial;
-    private Quaternion _rotacionInicial;
+    private Vector3 _direccionMovimiento;
     private Vector3 _posicionAnterior;
-    private PlayerMovement _jugadorEnLiana;
-    private Vector3 _offsetLocalJugador;
-    private Vector3 _posicionAnteriorJugador;
+    private PlayerMovement _jugador;
+    private float _ultimoContacto;
 
-    void Start()
+    private void Start()
     {
         _posicionInicial = transform.position;
-        _rotacionInicial = transform.rotation;
-        _posicionAnterior = transform.position;
-    }
+        _posicionAnterior = _posicionInicial;
+        _direccionMovimiento = _ejeMovimiento == EjeTransform.X ? Vector3.right : _ejeMovimiento == EjeTransform.Y ? Vector3.up : Vector3.forward;
 
-    void Update()
-    {
-        if (_lianaQuieta == false)
+        if (_lianaQuieta)
         {
-            if (_mover == true)
-            {
-                float rango = _movimientoMax - _movimientoMin;
-                float offset = _movimientoMin + Mathf.PingPong(Time.time * _velocidadMovimiento, rango);
-                Vector3 direccion = ObtenerDireccion(_ejeMovimiento);
-                transform.position = _posicionInicial + direccion * offset;
-            }
-
-            if (_rotar == true)
-            {
-                float rangoRotacion = _rotacionMax - _rotacionMin;
-                float anguloOffset = _rotacionMin + Mathf.PingPong(Time.time * _velocidadRotacion, rangoRotacion);
-                Vector3 ejeRotacion = ObtenerDireccion(_ejeRotacion);
-                transform.rotation = _rotacionInicial * Quaternion.AngleAxis(anguloOffset, ejeRotacion);
-            }
-
-            if (_jugadorEnLiana != null)
-            {
-                Vector3 nuevaPosicionJugador = transform.TransformPoint(_offsetLocalJugador);
-                Vector3 velocidadActual = (nuevaPosicionJugador - _posicionAnteriorJugador) / Time.deltaTime;
-                _jugadorEnLiana._velocidadLiana = velocidadActual;
-                _posicionAnteriorJugador = nuevaPosicionJugador;
-            }
-        }
-
-        _posicionAnterior = transform.position;
-    }
-
-    private Vector3 ObtenerDireccion(EjeTransform eje)
-    {
-        if (eje == EjeTransform.X)
-        {
-            return Vector3.right;
-        }
-        else if (eje == EjeTransform.Y)
-        {
-            return Vector3.up;
-        }
-        else
-        {
-            return Vector3.forward;
+            enabled = false;
         }
     }
 
-    void OnTriggerEnter(Collider other)
+    private void Update()
     {
-        if (other.CompareTag("Player"))
+        if (!_lianaQuieta)
         {
-            PlayerMovement controller = other.gameObject.GetComponent<PlayerMovement>();
-            controller.OnLiane();
-
-            if (_lianaQuieta == false)
+            if (_mover)
             {
-                _jugadorEnLiana = controller;
-                controller._enLianaMovil = true;
-                _offsetLocalJugador = transform.InverseTransformPoint(other.transform.position);
-                _posicionAnteriorJugador = other.transform.position;
+                float offset = _movimientoMin + Mathf.PingPong(Time.time * _velocidadMovimiento, _movimientoMax - _movimientoMin);
+                transform.position = _posicionInicial + _direccionMovimiento * offset;
             }
+
+            Vector3 posicion = transform.position;
+
+            if (_jugador != null && Time.deltaTime > 0f)
+            {
+                _jugador._velocidadLiana = (posicion - _posicionAnterior) / Time.deltaTime;
+            }
+
+            _posicionAnterior = posicion;
+        }
+
+        if (_jugador != null && Time.time - _ultimoContacto > _tiempoSinContacto)
+        {
+            Soltar();
         }
     }
 
-    void OnTriggerExit(Collider other)
+    private void OnDisable()
     {
-        if (other.gameObject.CompareTag("Player"))
+        if (_jugador != null)
         {
-            PlayerMovement controller = other.gameObject.GetComponent<PlayerMovement>();
-            controller.Invoke("OffLiane", 0);
-
-            if (controller == _jugadorEnLiana)
-            {
-                controller._enLianaMovil = false;
-                controller.RecibirImpulsoLiana(controller._velocidadLiana);
-                controller._velocidadLiana = Vector3.zero;
-                _jugadorEnLiana = null;
-            }
+            Soltar();
         }
+    }
+
+    public void RegistrarContacto(PlayerMovement jugador)
+    {
+        _ultimoContacto = Time.time;
+
+        if (_jugador == jugador) return;
+
+        _jugador = jugador;
+        enabled = true;
+        jugador.OnLiane();
+
+        if (!_lianaQuieta)
+        {
+            jugador._enLianaMovil = true;
+            _posicionAnterior = transform.position;
+        }
+    }
+
+    public void Soltar()
+    {
+        PlayerMovement jugador = _jugador;
+        if (jugador == null) return;
+
+        _jugador = null;
+        jugador.OffLiane();
+
+        if (_lianaQuieta)
+        {
+            enabled = false;
+            return;
+        }
+
+        jugador._enLianaMovil = false;
+        jugador.RecibirImpulsoLiana(jugador._velocidadLiana);
+        jugador._velocidadLiana = Vector3.zero;
     }
 }
