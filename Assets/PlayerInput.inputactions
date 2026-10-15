@@ -34,15 +34,6 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Sprint",
-                    "type": "Button",
-                    "id": "7502713c-a082-4e52-a809-d37e3ce5eac2",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "Press(behavior=2)",
-                    "initialStateCheck": false
-                },
-                {
                     "name": "Slide",
                     "type": "Button",
                     "id": "45151005-73d3-4f51-9d61-da50e16eddf2",
@@ -55,6 +46,15 @@
                     "name": "Shoot",
                     "type": "Button",
                     "id": "acf5f9c6-87cc-45e3-ba49-5240045bd7d8",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Dash",
+                    "type": "Button",
+                    "id": "09509d49-48ba-46d6-b07b-9e691fa508e0",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -141,17 +141,6 @@
                 },
                 {
                     "name": "",
-                    "id": "9bb526b8-f869-4d45-bc9a-c8585a5cce39",
-                    "path": "<Keyboard>/shift",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Sprint",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "8d66c154-b55e-4c56-ab58-c4004e157c6d",
                     "path": "<Keyboard>/ctrl",
                     "interactions": "",
@@ -169,6 +158,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "Shoot",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "182e2dcf-8da0-4c60-b5c9-857ecd34601b",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Dash",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

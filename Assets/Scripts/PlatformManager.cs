@@ -3,32 +3,71 @@ using UnityEngine;
 
 public class PlatformManager : MonoBehaviour
 {
-    public static PlatformManager instance = null;
-    [SerializeField] GameObject platformPrefab;
+    public static PlatformManager instance;
+
+    [SerializeField] Transform[] puntos;
+    [SerializeField] GameObject[] plataformas;
+    [SerializeField] float tiempoReaparicion = 5f;
 
     void Awake()
     {
-        if (instance == null)
-        {
-            instance = this;
-        }
-
-        else if (instance != this)
+        if (instance != null && instance != this)
         {
             Destroy(gameObject);
+            return;
         }
+
+        instance = this;
     }
 
     void Start()
     {
-        Instantiate(platformPrefab, new Vector3(5.5f, 15.25f, -221f), platformPrefab.transform.rotation);
-        Instantiate(platformPrefab, new Vector3(-1.5f, 15.25f, -221f), platformPrefab.transform.rotation);
-        Instantiate(platformPrefab, new Vector3(-8.5f, 15.25f, -221f), platformPrefab.transform.rotation);
+        for (int i = 0; i < puntos.Length; i++)
+        {
+            Crear(i);
+        }
     }
 
-    IEnumerator SpawnPlatform(Vector3 spawnPosition)
+    public void Reaparecer(int indice)
     {
-        yield return new WaitForSeconds(5f);
-        Instantiate(platformPrefab, spawnPosition, platformPrefab.transform.rotation);
+        StartCoroutine(EsperarYCrear(indice));
+    }
+
+    IEnumerator EsperarYCrear(int indice)
+    {
+        yield return new WaitForSeconds(tiempoReaparicion);
+        Crear(indice);
+    }
+
+    void Crear(int indice)
+    {
+        GameObject prefab = ObtenerPrefab(indice);
+
+        if (prefab == null || puntos[indice] == null)
+        {
+            return;
+        }
+
+        GameObject plataforma = Instantiate(prefab, puntos[indice].position, prefab.transform.rotation);
+
+        if (plataforma.TryGetComponent(out FallingPlatform falling))
+        {
+            falling.Iniciar(indice);
+        }
+    }
+
+    GameObject ObtenerPrefab(int indice)
+    {
+        if (plataformas == null || plataformas.Length == 0)
+        {
+            return null;
+        }
+
+        if (plataformas.Length == 1)
+        {
+            return plataformas[0];
+        }
+
+        return indice < plataformas.Length ? plataformas[indice] : null;
     }
 }

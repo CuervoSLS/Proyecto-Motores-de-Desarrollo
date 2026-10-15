@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class SendToSpawn : MonoBehaviour
 {
+<<<<<<< Updated upstream
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -14,11 +15,36 @@ public class SendToSpawn : MonoBehaviour
         
     }
     public void OnTriggerEnter(Collider other)
+=======
+    public bool usarTrigger = true;
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (usarTrigger)
+        {
+            RespawnPlayer(other);
+        }
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (!usarTrigger)
+        {
+            RespawnPlayer(collision.collider);
+        }
+    }
+
+    private void RespawnPlayer(Collider other)
+>>>>>>> Stashed changes
     {
         if (other.CompareTag("Player"))
         {
             PlayerSpawn spawn = other.GetComponent<PlayerSpawn>();
-            spawn.Respawn();
+
+            if (spawn != null)
+            {
+                spawn.Respawn();
+            }
         }
     }
 }
