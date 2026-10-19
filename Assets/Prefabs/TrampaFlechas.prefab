@@ -84,7 +84,7 @@ MonoBehaviour:
     m_Bits: 72
   tiempoEntreDisparos: 2
   tiempoEsperaDisparo: 0.3
-  balaEnemigo: {fileID: 6385155836253510711, guid: 6f22473232176a14596494564a77b073, type: 3}
+  balaEnemigo: {fileID: 6385155836253510711, guid: a9798e21a4f3a9e4187a965235f9cd79, type: 3}
   animator: {fileID: 0}
 --- !u!120 &4709297239040268637
 LineRenderer:

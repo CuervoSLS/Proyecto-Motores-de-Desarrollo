@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 3
   tags:
   - Bala
+  - Cuerda
   layers:
   - Default
   - TransparentFX
@@ -12,10 +13,10 @@ TagManager:
   - Player
   - Water
   - UI
-  - Pared
+  - ParedWallRun
   - Piso
-  - 
-  - 
+  - Cuerda
+  - ParedNormal
   - 
   - 
   - 
