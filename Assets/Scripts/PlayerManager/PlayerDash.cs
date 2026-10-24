@@ -126,9 +126,6 @@ public class PlayerDash : MonoBehaviour
         SetTrailsEmitting(false);
         EnDashFinal = !DashEnAire && _p.Ground.Grounded && !_p.Liana.EnLiana && !string.IsNullOrEmpty(_p.Anim.EstadoDashFinal);
         _dashCooldownTimer = _dashCooldown;
-        _p.Sprint.Sprinting = false;
-        _p.Sprint.ReiniciarToque();
-        _p.InputBloqueado = !DashEnAire;
     }
 
     private void SetTrailsEmitting(bool emitir)

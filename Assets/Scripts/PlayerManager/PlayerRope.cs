@@ -5,6 +5,7 @@ public class PlayerRope : MonoBehaviour
     [Header("Cuerda")]
     [SerializeField] private float _alturaMano = 1.7f;
     [SerializeField] private float _fuerzaColumpio = 12f;
+    [SerializeField] private float _fuerzaColumpio2 = 6f;
     [SerializeField] private float _gravedadCuerda = -14f;
     [SerializeField] private float _arrastreCuerda = 0.25f;
     [SerializeField] private float _velocidadMaxCuerda = 22f;
@@ -91,8 +92,10 @@ public class PlayerRope : MonoBehaviour
         Vector3 ancla = _cuerdaActual.Anclaje;
         Vector3 mano = PuntoMano();
         Vector3 adelante = Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized;
+        Vector3 derecha = Vector3.ProjectOnPlane(transform.right, Vector3.up).normalized;
 
-        _velCuerda += (Vector3.up * _gravedadCuerda + adelante * (_p.Move.y * _fuerzaColumpio)) * dt;
+        Vector3 impulso = adelante * (_p.Move.y * _fuerzaColumpio) + derecha * (_p.Move.x * _fuerzaColumpio2);
+        _velCuerda += (Vector3.up * _gravedadCuerda + impulso) * dt;
         _velCuerda /= 1f + _arrastreCuerda * dt;
         _velCuerda = Vector3.ClampMagnitude(_velCuerda, _velocidadMaxCuerda);
 

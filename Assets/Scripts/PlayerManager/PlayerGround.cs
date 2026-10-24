@@ -11,6 +11,7 @@ public class PlayerGround : MonoBehaviour
     private PlayerMovement _p;
 
     public bool Grounded { get; private set; }
+    public Collider Suelo { get; private set; }
 
     public void Init(PlayerMovement p)
     {
@@ -32,9 +33,11 @@ public class PlayerGround : MonoBehaviour
 
         if (Physics.SphereCast(origen, radio, Vector3.down, out RaycastHit hit, DistanciaMaximaSuelo, _groundMask, QueryTriggerInteraction.Ignore))
         {
+            Suelo = hit.collider;
             return Mathf.Max(0f, hit.distance + radio - controller.height * 0.5f);
         }
 
+        Suelo = null;
         return float.PositiveInfinity;
     }
 }
