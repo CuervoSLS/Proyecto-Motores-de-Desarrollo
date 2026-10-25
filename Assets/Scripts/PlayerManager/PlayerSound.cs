@@ -50,6 +50,7 @@ public class PlayerSound : MonoBehaviour
 
     [Header("Salto y dash")]
     [SerializeField] private GrupoSonido _saltar;
+    [SerializeField] private GrupoSonido _saltarPersonaje;
     [SerializeField] private GrupoSonido _dash;
 
     [Header("Liana")]
@@ -57,6 +58,7 @@ public class PlayerSound : MonoBehaviour
     [SerializeField] private float _distanciaPorSonido = 0.6f;
 
     private PlayerMovement _p;
+    private PlayerBreathing _respiracion;
     private float _temporizadorPaso;
     private float _temporizadorWallRun;
     private bool _enLianaAnterior;
@@ -71,6 +73,7 @@ public class PlayerSound : MonoBehaviour
     private void Start()
     {
         _p = GetComponent<PlayerMovement>();
+        _respiracion = GetComponent<PlayerBreathing>();
 
         if (_fuentePasos == null) _fuentePasos = CrearFuente();
         if (_fuenteEfectos == null) _fuenteEfectos = CrearFuente();
@@ -230,16 +233,23 @@ public class PlayerSound : MonoBehaviour
     private void AlSaltar()
     {
         Reproducir(_saltar, _fuenteEfectos);
+
+        AudioClip vocal = Reproducir(_saltarPersonaje, _fuenteEfectos);
+        if (vocal != null && _respiracion != null)
+        {
+            _respiracion.Silenciar(vocal.length);
+        }
     }
 
-    private void Reproducir(GrupoSonido grupo, AudioSource fuente)
+    private AudioClip Reproducir(GrupoSonido grupo, AudioSource fuente)
     {
-        if (grupo == null || fuente == null) return;
+        if (grupo == null || fuente == null) return null;
 
         AudioClip clip = grupo.Elegir();
-        if (clip == null) return;
+        if (clip == null) return null;
 
         fuente.PlayOneShot(clip, grupo.volumen);
+        return clip;
     }
 
     private AudioSource CrearFuente()

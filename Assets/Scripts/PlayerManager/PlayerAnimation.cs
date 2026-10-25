@@ -31,12 +31,14 @@ public class PlayerAnimation : MonoBehaviour
     private PlayerMovement _p;
     private bool _enAire;
     private string _estadoAnimActual = "";
+    private PlayerBreathing _respiracion;
 
     public string EstadoDashFinal => _estadoDashFinal;
 
     public void Init(PlayerMovement p)
     {
         _p = p;
+        _respiracion = GetComponent<PlayerBreathing>();
     }
 
     public void Actualizar(float distanciaSuelo)
@@ -89,14 +91,14 @@ public class PlayerAnimation : MonoBehaviour
         if (estado != _estadoAnimActual)
         {
             _estadoAnimActual = estado;
-            animator.speed = 1f;
+            animator.speed = VelocidadEstado(estado);
             animator.CrossFadeInFixedTime(estado, _tiempoTransicion, 0);
             return;
         }
 
         if (animator.IsInTransition(0))
         {
-            animator.speed = 1f;
+            animator.speed = VelocidadEstado(estado);
             return;
         }
 
@@ -131,7 +133,7 @@ public class PlayerAnimation : MonoBehaviour
             return;
         }
 
-        animator.speed = 1f;
+        animator.speed = VelocidadEstado(estado);
 
         if (_repetirAnimacionesEnLoop)
         {
@@ -141,6 +143,16 @@ public class PlayerAnimation : MonoBehaviour
                 animator.Play(estado, 0, 0f);
             }
         }
+    }
+
+    private float VelocidadEstado(string estado)
+    {
+        if (_respiracion != null && estado == _estadoQuieto)
+        {
+            return _respiracion.VelocidadAnimacionQuieto;
+        }
+
+        return 1f;
     }
 
     private string EstadoLocomocion(Vector2 move, bool sliding)
