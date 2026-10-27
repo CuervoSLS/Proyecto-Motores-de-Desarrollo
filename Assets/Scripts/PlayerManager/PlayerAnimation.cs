@@ -31,14 +31,14 @@ public class PlayerAnimation : MonoBehaviour
     private PlayerMovement _p;
     private bool _enAire;
     private string _estadoAnimActual = "";
-    private PlayerBreathing _respiracion;
+    private PlayerVoice _respiracion;
 
     public string EstadoDashFinal => _estadoDashFinal;
 
     public void Init(PlayerMovement p)
     {
         _p = p;
-        _respiracion = GetComponent<PlayerBreathing>();
+        _respiracion = GetComponent<PlayerVoice>();
     }
 
     public void Actualizar(float distanciaSuelo)

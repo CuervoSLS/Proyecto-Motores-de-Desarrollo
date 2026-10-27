@@ -21,7 +21,7 @@ public class PlayerCameraRecentering : MonoBehaviour
         if (_orbital == null) return;
 
         Vector2 move = _p.Move;
-        bool activar = !_p.Rope.EnCuerda && !_p.Liana.EnLiana && Mathf.Abs(move.y) > 0.1f && Mathf.Abs(move.x) < 0.1f;
+        bool activar = !_p.Rope.EnCuerda && !_p.Liana.EnLiana && !_p.WallRun.WallRunning && Mathf.Abs(move.y) > 0.1f && Mathf.Abs(move.x) < 0.1f;
         if (activar == _recenteringActivo) return;
         _recenteringActivo = activar;
 
