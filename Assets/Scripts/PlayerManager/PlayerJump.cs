@@ -11,6 +11,8 @@ public class PlayerJump : MonoBehaviour
 
     private PlayerMovement _p;
 
+    public event System.Action Saltado;
+
     public int MaxJumps => _maxJumps;
     public int JumpsRestantes { get; set; }
 
@@ -37,6 +39,7 @@ public class PlayerJump : MonoBehaviour
             _p.Rope.Soltar();
             _p.VerticalVelocity += _p.Rope.ImpulsoSalto;
             JumpsRestantes = _maxJumps - 1;
+            Saltado?.Invoke();
             return;
         }
 
@@ -55,6 +58,8 @@ public class PlayerJump : MonoBehaviour
                 _p.Slide.Sliding = false;
                 _p.Sprint.Sprinting = true;
             }
+
+            Saltado?.Invoke();
             return;
         }
 
@@ -62,6 +67,7 @@ public class PlayerJump : MonoBehaviour
         {
             _p.VerticalVelocity = JumpVelocity();
             JumpsRestantes--;
+            Saltado?.Invoke();
         }
     }
 

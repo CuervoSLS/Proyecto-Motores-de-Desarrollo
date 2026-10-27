@@ -14,6 +14,7 @@ public class PlayerWallRun : MonoBehaviour
 
     public bool WallRunning { get; private set; }
     public int LadoPared { get; private set; }
+    public Collider Pared { get; private set; }
 
     public void Init(PlayerMovement p)
     {
@@ -23,6 +24,7 @@ public class PlayerWallRun : MonoBehaviour
     public void Manejar()
     {
         WallRunning = false;
+        Pared = null;
 
         Vector2 move = _p.Move;
         int lado = move.x < -0.1f ? -1 : move.x > 0.1f ? 1 : 0;
@@ -46,6 +48,7 @@ public class PlayerWallRun : MonoBehaviour
         {
             WallRunning = true;
             LadoPared = lado;
+            Pared = hit.collider;
             _wallNormal = hit.normal;
             _p.Jump.JumpsRestantes = _p.Jump.MaxJumps;
         }

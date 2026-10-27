@@ -20,11 +20,6 @@ public class PlayerSprint : MonoBehaviour
         _p = p;
     }
 
-    public void ReiniciarToque()
-    {
-        _lastWTapTime = -10f;
-    }
-
     public void Detectar()
     {
         Keyboard kb = Keyboard.current;

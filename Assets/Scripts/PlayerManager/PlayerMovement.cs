@@ -34,7 +34,6 @@ public class PlayerMovement : MonoBehaviour
     public Vector2 InputUtil => _inputUtil;
     public Vector2 Look => _look;
     public float Rotate => _rotate;
-    public bool InputBloqueado { get => _inputBloqueado; set => _inputBloqueado = value; }
     public float VerticalVelocity { get; set; }
 
     public PlayerGround Ground { get; private set; }
@@ -85,10 +84,6 @@ public class PlayerMovement : MonoBehaviour
 
     private void Update()
     {
-        if (_inputBloqueado && _input.sqrMagnitude < 0.01f)
-        {
-            _inputBloqueado = false;
-        }
 
         _inputUtil = _inputBloqueado ? Vector2.zero : _input;
         _move = Liana.EnLiana ? new Vector2(0f, _inputUtil.y) : _inputUtil;
