@@ -5,23 +5,35 @@ public class FallingPlatform : MonoBehaviour
 {
     [SerializeField] float tiempoAntesDeCaer = 1f;
     [SerializeField] float tiempoCaida = 4f;
+    [SerializeField] float tiempoReaparicion = 3f;
     [SerializeField] float aceleracionCaida = 10f;
     [SerializeField, Range(0.05f, 0.95f)] float transparenciaFinal = 0.25f;
     [SerializeField] int parpadeos = 3;
 
+    Renderer render;
     Material material;
     Collider colision;
     Color colorBase;
+    Vector3 posicionInicial;
+    Quaternion rotacionInicial;
+    WaitForSeconds esperaAntesDeCaer;
+    WaitForSeconds esperaCaida;
+    WaitForSeconds esperaReaparicion;
     float velocidad;
-    int indice;
     bool activada;
     bool cayendo;
 
     void Awake()
     {
-        material = GetComponent<Renderer>().material;
+        render = GetComponent<Renderer>();
+        material = render.material;
         colision = GetComponent<Collider>();
         colorBase = material.color;
+        posicionInicial = transform.position;
+        rotacionInicial = transform.rotation;
+        esperaAntesDeCaer = new WaitForSeconds(tiempoAntesDeCaer);
+        esperaCaida = new WaitForSeconds(tiempoCaida);
+        esperaReaparicion = new WaitForSeconds(tiempoReaparicion);
     }
 
     void Update()
@@ -42,7 +54,6 @@ public class FallingPlatform : MonoBehaviour
 
     public void Iniciar(int nuevoIndice)
     {
-        indice = nuevoIndice;
     }
 
     void OnCollisionEnter(Collision collision)
@@ -61,7 +72,6 @@ public class FallingPlatform : MonoBehaviour
         }
 
         activada = true;
-        PlatformManager.instance.Reaparecer(indice);
         StartCoroutine(Secuencia());
     }
 
@@ -69,14 +79,19 @@ public class FallingPlatform : MonoBehaviour
     {
         StartCoroutine(Desvanecer(tiempoAntesDeCaer + tiempoCaida));
 
-        yield return new WaitForSeconds(tiempoAntesDeCaer);
+        yield return esperaAntesDeCaer;
 
         colision.enabled = false;
         cayendo = true;
 
-        yield return new WaitForSeconds(tiempoCaida);
+        yield return esperaCaida;
 
-        Destroy(gameObject);
+        cayendo = false;
+        render.enabled = false;
+
+        yield return esperaReaparicion;
+
+        Reiniciar();
     }
 
     IEnumerator Desvanecer(float duracion)
@@ -95,5 +110,16 @@ public class FallingPlatform : MonoBehaviour
 
         colorBase.a = transparenciaFinal;
         material.color = colorBase;
+    }
+
+    void Reiniciar()
+    {
+        transform.SetPositionAndRotation(posicionInicial, rotacionInicial);
+        velocidad = 0f;
+        colorBase.a = 1f;
+        material.color = colorBase;
+        render.enabled = true;
+        colision.enabled = true;
+        activada = false;
     }
 }
