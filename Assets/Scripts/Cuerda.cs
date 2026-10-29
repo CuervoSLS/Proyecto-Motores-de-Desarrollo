@@ -28,6 +28,12 @@ public class Cuerda : MonoBehaviour
     [SerializeField, Min(1)] private int _segmentosAgarrados = 3;
     [SerializeField] private float _velocidadMaxima = 30f;
 
+    [Header("Gancho")]
+    [SerializeField] private bool _cuerdaConGancho = false;
+    [SerializeField] private bool _sostenerEnManoHastaSaltar = true;
+    [SerializeField] private Transform _jugador;
+    [SerializeField] private float _alturaMano = 1.7f;
+
     [Header("Malla")]
     [SerializeField] private float _radio = 0.05f;
     [SerializeField] private int _lados = 8;
@@ -56,6 +62,15 @@ public class Cuerda : MonoBehaviour
     private bool _ejeZ = true;
     private float _yawPunto;
     private int _zonaPre;
+
+    private PlayerMovement _jugadorMov;
+    private PlayerGround _suelo;
+    private CharacterController _controlador;
+    private bool _ganchoActivo;
+    private bool _sostenida;
+    private bool _ignorandoJugador;
+    private Vector3 _manoAnterior;
+    private Vector3 _anclaAnterior;
 
     private Mesh _mesh;
     private Vector3[] _vertices;
@@ -113,6 +128,35 @@ public class Cuerda : MonoBehaviour
         if (_usarColision) ActualizarColliders();
     }
 
+    private void Start()
+    {
+        if (!_cuerdaConGancho) return;
+
+        ResolverJugador();
+
+        if (!_ganchoActivo)
+        {
+            Debug.LogWarning("Cuerda: no se encontro el jugador (tag Player), el gancho queda desactivado.", this);
+            return;
+        }
+
+        Vector3 ancla = Anclaje;
+        Vector3 mano = PuntoMano();
+        ColocarEnLinea(ancla, mano);
+        _manoAnterior = mano;
+        _anclaAnterior = ancla;
+
+        if (_sostenerEnManoHastaSaltar)
+        {
+            _sostenida = true;
+            _ignorandoJugador = true;
+            IgnorarColision(_controlador, true);
+        }
+
+        ActualizarMalla();
+        if (_usarColision) ActualizarColliders();
+    }
+
     private void OnEnable()
     {
         Todas.Add(this);
@@ -132,6 +176,77 @@ public class Cuerda : MonoBehaviour
             _puntoAgarre.DetachChildren();
             Destroy(_puntoAgarre.gameObject);
         }
+    }
+
+    private void ResolverJugador()
+    {
+        if (_jugador == null)
+        {
+            GameObject encontrado = GameObject.FindGameObjectWithTag("Player");
+            if (encontrado != null) _jugador = encontrado.transform;
+        }
+
+        if (_jugador == null) return;
+
+        _jugadorMov = _jugador.GetComponentInParent<PlayerMovement>();
+        if (_jugadorMov == null) return;
+
+        _jugador = _jugadorMov.transform;
+        _suelo = _jugadorMov.Ground;
+        _controlador = _jugadorMov._controller;
+        _ganchoActivo = _suelo != null && _controlador != null;
+    }
+
+    private Vector3 PuntoMano()
+    {
+        return _jugador.position + Vector3.up * _alturaMano;
+    }
+
+    private void ColocarEnLinea(Vector3 ancla, Vector3 mano)
+    {
+        int ultimo = _pos.Length - 1;
+        float inverso = 1f / ultimo;
+
+        for (int i = 0; i <= ultimo; i++)
+        {
+            Vector3 punto = Vector3.Lerp(ancla, mano, i * inverso);
+            _pos[i] = punto;
+            _prev[i] = punto;
+        }
+    }
+
+    private bool ActualizarSostenida()
+    {
+        if (_indiceAgarre < 0 && _suelo.Grounded) return MantenerEnMano();
+
+        TerminarSostenida();
+        Simular();
+        return true;
+    }
+
+    private bool MantenerEnMano()
+    {
+        Vector3 ancla = Anclaje;
+        Vector3 mano = PuntoMano();
+
+        if (mano == _manoAnterior && ancla == _anclaAnterior) return false;
+
+        _manoAnterior = mano;
+        _anclaAnterior = ancla;
+        ColocarEnLinea(ancla, mano);
+        return true;
+    }
+
+    private void TerminarSostenida()
+    {
+        _sostenida = false;
+
+        if (_ignorandoJugador && _indiceAgarre < 0 && _controlador != null)
+        {
+            IgnorarColision(_controlador, false);
+        }
+
+        _ignorandoJugador = false;
     }
 
     private void CrearMalla(int nodos)
@@ -242,6 +357,9 @@ public class Cuerda : MonoBehaviour
     public bool TryAgarrar(Vector3 punto, out int indice)
     {
         indice = -1;
+
+        if (_ganchoActivo && _suelo.Grounded) return false;
+
         float mejor = _radioAgarre * _radioAgarre;
 
         for (int i = 1; i < _pos.Length; i++)
@@ -335,7 +453,15 @@ public class Cuerda : MonoBehaviour
 
     private void LateUpdate()
     {
-        Simular();
+        if (_sostenida)
+        {
+            if (!ActualizarSostenida()) return;
+        }
+        else
+        {
+            Simular();
+        }
+
         if (_indiceAgarre >= 0) ActualizarPuntoAgarre();
         ActualizarMalla();
         if (_usarColision) ActualizarColliders();
