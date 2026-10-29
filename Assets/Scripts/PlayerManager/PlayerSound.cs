@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Audio;
 
 [System.Serializable]
 public class GrupoSonido
@@ -25,6 +26,9 @@ public class PlayerSound : MonoBehaviour
     [SerializeField] private AudioSource _fuentePasos;
     [SerializeField] private AudioSource _fuenteEfectos;
 
+    [Header("Grupos del Audio Mixer")]
+    [SerializeField] private AudioMixerGroup _grupoSonidos;
+
     [Header("Deteccion de superficie")]
     [SerializeField] private string _nombreLayerTierra = "PisoTierra";
     [SerializeField] private string _nombreLayerCesped = "PisoCesped";
@@ -50,7 +54,6 @@ public class PlayerSound : MonoBehaviour
 
     [Header("Salto y dash")]
     [SerializeField] private GrupoSonido _saltar;
-    [SerializeField] private GrupoSonido _saltarPersonaje;
     [SerializeField] private GrupoSonido _dash;
 
     [Header("Liana")]
@@ -58,7 +61,7 @@ public class PlayerSound : MonoBehaviour
     [SerializeField] private float _distanciaPorSonido = 0.6f;
 
     private PlayerMovement _p;
-    private PlayerBreathing _respiracion;
+    private PlayerVoice _respiracion;
     private float _temporizadorPaso;
     private float _temporizadorWallRun;
     private bool _enLianaAnterior;
@@ -73,10 +76,12 @@ public class PlayerSound : MonoBehaviour
     private void Start()
     {
         _p = GetComponent<PlayerMovement>();
-        _respiracion = GetComponent<PlayerBreathing>();
+        _respiracion = GetComponent<PlayerVoice>();
 
         if (_fuentePasos == null) _fuentePasos = CrearFuente();
         if (_fuenteEfectos == null) _fuenteEfectos = CrearFuente();
+
+        if (_grupoSonidos != null) _fuentePasos.outputAudioMixerGroup = _grupoSonidos;
 
         _capaTierra = LayerMask.NameToLayer(_nombreLayerTierra);
         _capaCesped = LayerMask.NameToLayer(_nombreLayerCesped);
@@ -85,14 +90,7 @@ public class PlayerSound : MonoBehaviour
         if (_capaTierra < 0) Debug.LogWarning("PlayerSound: no existe el layer " + _nombreLayerTierra, this);
         if (_capaCesped < 0) Debug.LogWarning("PlayerSound: no existe el layer " + _nombreLayerCesped, this);
         if (_capaParedWallRun < 0) Debug.LogWarning("PlayerSound: no existe el layer " + _nombreLayerParedWallRun, this);
-
-        _p.Jump.Saltado += AlSaltar;
         _ultimaAltura = transform.position.y;
-    }
-
-    private void OnDestroy()
-    {
-        if (_p != null && _p.Jump != null) _p.Jump.Saltado -= AlSaltar;
     }
 
     private void LateUpdate()
@@ -228,17 +226,6 @@ public class PlayerSound : MonoBehaviour
         _ultimaClaveDebug = clave;
 
         Debug.Log("PlayerSound " + contexto + " -> layer: " + nombreCapa + " | " + estado, this);
-    }
-
-    private void AlSaltar()
-    {
-        Reproducir(_saltar, _fuenteEfectos);
-
-        AudioClip vocal = Reproducir(_saltarPersonaje, _fuenteEfectos);
-        if (vocal != null && _respiracion != null)
-        {
-            _respiracion.Silenciar(vocal.length);
-        }
     }
 
     private AudioClip Reproducir(GrupoSonido grupo, AudioSource fuente)

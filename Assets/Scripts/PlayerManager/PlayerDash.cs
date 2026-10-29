@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class PlayerDash : MonoBehaviour
 {
@@ -12,7 +13,16 @@ public class PlayerDash : MonoBehaviour
     [SerializeField] private float _impulsoAireResidual = 4f;
     [SerializeField] private TrailRenderer[] _trails;
 
+    [Header("UI Cooldown")]
+    [SerializeField] private Slider _cooldownSlider;
+    [Tooltip("Velocidad (unidades/seg) con la que el slider baja a 0 al usar el dash y sigue al progreso del cooldown.")]
+    [SerializeField] private float _velocidadSlider = 8f;
+
+    private const float EpsilonInercia = 0.0001f;
+    private const float EpsilonDistancia = 0.01f;
+
     private PlayerMovement _p;
+    private Transform _transform;
     private Vector3 _dashDireccion;
     private float _dashTimer;
     private float _dashCooldownTimer;
@@ -27,7 +37,25 @@ public class PlayerDash : MonoBehaviour
     public void Init(PlayerMovement p)
     {
         _p = p;
+        _transform = transform;
         _trailsEmitiendo = true;
+        SetTrailsEmitting(false);
+
+        if (_cooldownSlider != null)
+        {
+            _cooldownSlider.minValue = 0f;
+            _cooldownSlider.maxValue = 1f;
+            _cooldownSlider.interactable = false;
+            _cooldownSlider.SetValueWithoutNotify(1f);
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (_p == null) return;
+
+        Dashing = false;
+        Inercia = Vector3.zero;
         SetTrailsEmitting(false);
     }
 
@@ -38,9 +66,11 @@ public class PlayerDash : MonoBehaviour
 
     public void Tick()
     {
+        float dt = Time.deltaTime;
+
         if (Dashing)
         {
-            _dashTimer -= Time.deltaTime;
+            _dashTimer -= dt;
             if (_dashTimer <= 0f || _p.Liana.EnLiana)
             {
                 Terminar();
@@ -48,22 +78,28 @@ public class PlayerDash : MonoBehaviour
         }
         else if (_dashCooldownTimer > 0f)
         {
-            _dashCooldownTimer -= Time.deltaTime;
+            _dashCooldownTimer -= dt;
         }
+
+        ActualizarSlider(dt);
     }
 
     public void AplicarInercia(ref Vector3 move, float dt)
     {
-        if (Inercia.sqrMagnitude <= 0.0001f) return;
+        float magnitud = Inercia.magnitude;
+        if (magnitud * magnitud <= EpsilonInercia) return;
 
         move += Inercia;
+
         float objetivo = _p.Ground.Grounded ? 0f : _impulsoAireResidual;
-        float velocidadInercia = Mathf.MoveTowards(Inercia.magnitude, objetivo, _deceleracionImpulsoAire * dt);
-        Inercia = Inercia.normalized * velocidadInercia;
+        float nuevaMagnitud = Mathf.MoveTowards(magnitud, objetivo, _deceleracionImpulsoAire * dt);
+        Inercia *= nuevaMagnitud / magnitud;
     }
 
     public void Mover(float dt)
     {
+        if (!Dashing || dt <= 0f) return;
+
         PlayerLocomotion loco = _p.Locomotion;
 
         if (_p.Ground.Grounded && _p.VerticalVelocity < 0f)
@@ -85,14 +121,14 @@ public class PlayerDash : MonoBehaviour
         Vector3 dashMove = _dashDireccion * velocidadDash;
         dashMove.y = _p.VerticalVelocity;
 
-        Vector3 posicionAntes = transform.position;
+        Vector3 posicionAntes = _transform.position;
         _p._controller.Move(dashMove * dt);
 
-        Vector3 desplazamiento = transform.position - posicionAntes;
+        Vector3 desplazamiento = _transform.position - posicionAntes;
         desplazamiento.y = 0f;
         _dashRecorrido += desplazamiento.magnitude;
 
-        if (_dashRecorrido >= _dashDistance - 0.01f)
+        if (_dashRecorrido >= _dashDistance - EpsilonDistancia)
         {
             Terminar();
         }
@@ -104,11 +140,11 @@ public class PlayerDash : MonoBehaviour
 
         Dashing = true;
         DashEnAire = !_p.Ground.Grounded;
-        SetTrailsEmitting(true);
         EnDashFinal = false;
         _dashTimer = _dashDuration;
         _dashRecorrido = 0f;
-        _dashDireccion = transform.forward;
+        _dashDireccion = _transform.forward;
+        SetTrailsEmitting(true);
     }
 
     private bool PuedeHacerDash()
@@ -121,11 +157,42 @@ public class PlayerDash : MonoBehaviour
 
     private void Terminar()
     {
+        // Evita terminar dos veces en el mismo frame (Tick + Mover).
+        if (!Dashing) return;
+
         Dashing = false;
-        Inercia = DashEnAire && !_p.Liana.EnLiana ? _dashDireccion * _dashForce : Vector3.zero;
-        SetTrailsEmitting(false);
-        EnDashFinal = !DashEnAire && _p.Ground.Grounded && !_p.Liana.EnLiana && !string.IsNullOrEmpty(_p.Anim.EstadoDashFinal);
+
+        bool enLiana = _p.Liana.EnLiana;
+        Inercia = DashEnAire && !enLiana ? _dashDireccion * _dashForce : Vector3.zero;
+        EnDashFinal = !DashEnAire && !enLiana && _p.Ground.Grounded && !string.IsNullOrEmpty(_p.Anim.EstadoDashFinal);
         _dashCooldownTimer = _dashCooldown;
+
+        SetTrailsEmitting(false);
+    }
+
+    private void ActualizarSlider(float dt)
+    {
+        if (_cooldownSlider == null) return;
+
+        // Mientras dashea baja a 0; luego sube de 0 a 1 en exactamente el tiempo del cooldown.
+        float objetivo;
+        if (Dashing)
+        {
+            objetivo = 0f;
+        }
+        else if (_dashCooldownTimer > 0f && _dashCooldown > 0f)
+        {
+            objetivo = 1f - Mathf.Clamp01(_dashCooldownTimer / _dashCooldown);
+        }
+        else
+        {
+            objetivo = 1f;
+        }
+
+        float actual = _cooldownSlider.value;
+        if (Mathf.Approximately(actual, objetivo)) return;
+
+        _cooldownSlider.SetValueWithoutNotify(Mathf.MoveTowards(actual, objetivo, _velocidadSlider * dt));
     }
 
     private void SetTrailsEmitting(bool emitir)
