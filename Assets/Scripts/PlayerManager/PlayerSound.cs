@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Audio;
+using UnityEngine.Serialization;
 
 [System.Serializable]
 public class GrupoSonido
@@ -62,8 +63,20 @@ public class PlayerSound : MonoBehaviour
     [Header("Wall run")]
     [SerializeField] private float _intervaloWallRun = 0.35f;
 
-    [Header("Salto y dash")]
-    [SerializeField] private GrupoSonido _saltar;
+    [Header("Salto segun la superficie")]
+    [SerializeField, FormerlySerializedAs("_saltar")] private GrupoSonido _saltarTierra;
+    [SerializeField] private GrupoSonido _saltarCesped;
+    [SerializeField] private GrupoSonido _saltarRoca;
+    [SerializeField] private GrupoSonido _saltarMadera;
+
+    [Header("Aterrizaje segun la superficie")]
+    [SerializeField] private GrupoSonido _aterrizarTierra;
+    [SerializeField] private GrupoSonido _aterrizarCesped;
+    [SerializeField] private GrupoSonido _aterrizarRoca;
+    [SerializeField] private GrupoSonido _aterrizarMadera;
+    [SerializeField] private float _tiempoMinimoEnAire = 0.2f;
+
+    [Header("Dash")]
     [SerializeField] private GrupoSonido _dash;
 
     [Header("Liana")]
@@ -75,6 +88,8 @@ public class PlayerSound : MonoBehaviour
     private float _temporizadorWallRun;
     private bool _enLianaAnterior;
     private bool _dashAnterior;
+    private bool _enSueloAnterior;
+    private float _tiempoEnAire;
     private float _ultimaAltura;
     private float _alturaAcumulada;
     private int _capaTierra = -1;
@@ -127,7 +142,9 @@ public class PlayerSound : MonoBehaviour
         DetectarAlturaLiana(enLiana);
         ActualizarPasos(enLiana, enCuerda, dashing);
         ActualizarWallRun();
+        DetectarAterrizaje(_p.Ground.Grounded);
 
+        _enSueloAnterior = _p.Ground.Grounded;
         _enLianaAnterior = enLiana;
         _dashAnterior = dashing;
         _ultimaAltura = transform.position.y;
@@ -252,9 +269,61 @@ public class PlayerSound : MonoBehaviour
         Debug.Log("PlayerSound " + contexto + " -> layer: " + nombreCapa + " | " + estado, this);
     }
 
+    private void DetectarAterrizaje(bool enSuelo)
+    {
+        if (!enSuelo)
+        {
+            _tiempoEnAire += Time.deltaTime;
+            return;
+        }
+
+        bool aterrizo = !_enSueloAnterior && _tiempoEnAire >= _tiempoMinimoEnAire;
+        _tiempoEnAire = 0f;
+
+        if (!aterrizo) return;
+
+        int capa = CapaDelPiso();
+        GrupoSonido grupo = ElegirAterrizaje(capa);
+
+        if (_depurar) Depurar("aterrizaje", capa, grupo);
+
+        Reproducir(grupo, _fuenteEfectos);
+    }
+
+    private GrupoSonido ElegirAterrizaje(int capa)
+    {
+        if (capa < 0) return null;
+
+        if (capa == _capaTierra) return _aterrizarTierra;
+        if (capa == _capaCesped) return _aterrizarCesped;
+        if (capa == _capaRoca) return _aterrizarRoca;
+        if (capa == _capaMadera) return _aterrizarMadera;
+
+        return null;
+    }
+
     private void AlSaltar()
     {
-        Reproducir(_saltar, _fuenteEfectos);
+        if (!_p.Ground.Grounded) return;
+
+        int capa = CapaDelPiso();
+        GrupoSonido grupo = ElegirSalto(capa);
+
+        if (_depurar) Depurar("salto", capa, grupo);
+
+        Reproducir(grupo, _fuenteEfectos);
+    }
+
+    private GrupoSonido ElegirSalto(int capa)
+    {
+        if (capa < 0) return null;
+
+        if (capa == _capaTierra) return _saltarTierra;
+        if (capa == _capaCesped) return _saltarCesped;
+        if (capa == _capaRoca) return _saltarRoca;
+        if (capa == _capaMadera) return _saltarMadera;
+
+        return null;
     }
 
     private void Reproducir(GrupoSonido grupo, AudioSource fuente)

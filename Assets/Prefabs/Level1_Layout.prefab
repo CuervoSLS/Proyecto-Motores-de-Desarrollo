@@ -15933,7 +15933,7 @@ GameObject:
   - component: {fileID: 2999150598844461528}
   - component: {fileID: 6898545686611587165}
   - component: {fileID: 3241364538303106921}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: HardRock_54 (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -27928,7 +27928,7 @@ GameObject:
   - component: {fileID: 586972828485651466}
   - component: {fileID: 6654464750145594504}
   - component: {fileID: 5767890991879077275}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: HardRock_54
   m_TagString: Untagged
   m_Icon: {fileID: 0}
