@@ -11,8 +11,8 @@ GameObject:
   - component: {fileID: 8626134741846537568}
   - component: {fileID: 4618991506381093573}
   - component: {fileID: 7493148673354026511}
-  - component: {fileID: 7555979005674016442}
-  - component: {fileID: 3451422544597065268}
+  - component: {fileID: 6723922936761513228}
+  - component: {fileID: 342228875789660517}
   m_Layer: 7
   m_Name: TileGround_18
   m_TagString: Untagged
@@ -92,7 +92,7 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &7555979005674016442
+--- !u!65 &6723922936761513228
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -113,7 +113,7 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 5, y: 0.9, z: 5}
   m_Center: {x: 0, y: 0.45, z: 0}
---- !u!65 &3451422544597065268
+--- !u!65 &342228875789660517
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -132,5 +132,5 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1.0143743, y: 1, z: 5}
-  m_Center: {x: -1.9928129, y: 0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 5}
+  m_Center: {x: -2, y: 0.5, z: 0}
