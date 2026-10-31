@@ -43,7 +43,7 @@ GameObject:
   - component: {fileID: 7258374047937210169}
   - component: {fileID: 4709297239040268637}
   m_Layer: 0
-  m_Name: TrampaFlechas
+  m_Name: Trampa_Flechas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

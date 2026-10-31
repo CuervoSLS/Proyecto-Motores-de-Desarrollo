@@ -11,7 +11,8 @@ GameObject:
   - component: {fileID: 8626134741846537568}
   - component: {fileID: 4618991506381093573}
   - component: {fileID: 7493148673354026511}
-  - component: {fileID: 7675457813151245902}
+  - component: {fileID: 7555979005674016442}
+  - component: {fileID: 3451422544597065268}
   m_Layer: 7
   m_Name: TileGround_18
   m_TagString: Untagged
@@ -91,8 +92,8 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &7675457813151245902
-MeshCollider:
+--- !u!65 &7555979005674016442
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -109,7 +110,27 @@ MeshCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 1
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 8657792373245464139, guid: 890ecd1b62657e144a50e6b6448b73d1, type: 3}
+  serializedVersion: 3
+  m_Size: {x: 5, y: 0.9, z: 5}
+  m_Center: {x: 0, y: 0.45, z: 0}
+--- !u!65 &3451422544597065268
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9006635706358656986}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.0143743, y: 1, z: 5}
+  m_Center: {x: -1.9928129, y: 0.5, z: 0}
