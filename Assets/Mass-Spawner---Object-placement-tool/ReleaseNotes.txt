@@ -1,0 +1,93 @@
+1.3.2:
+---------------------
+Fixes:
+- Fixed transform reference link issue on object layer duplication
+
+
+1.3.1:
+---------------------
+Fixes:
+- Fixed Heightmap gizmo:
+  Now the World boundary box drawing properly
+
+- Fixed GUILayout inconsistencies
+
+- Fixed several Object reference errors
+
+
+1.3.0:
+---------------------
+Changes:
+- Tab view:
+  The "Heightmap" and "World" tabs merged as "Heightmap & World".
+  The "Layers" tab is now called "Layers & Objects", and it contains now the placement commands and the heightmap preview.
+  The "Place/Update objects" and "Delete objects" button only visible in the "Layers & Objects" tab.
+
+Fixes:
+- Heightmaps stored correctly:
+  Earlier the generated maps (height, steepness, stylized) got discarded when the you close the editor.
+  From now on, the maps saved into the Asset's folder (as "generatedMaps"), and the editor load them from this asset when you start the editor.
+
+- Layer duplication:
+  Now the layer duplication is working perfectly, without unwanted reference chaining or data loss.
+
+Improvements
+- Overall Editor performace:
+  The Editor script got a lot of optimization, now the editor is blazing fast.
+
+- Placement maps:
+  The placement maps now generated with a compute shader for better performance (up to 10X).
+
+- Gizmos:
+  Now the gizmos only showen when needed to. (World bounds, Placement)
+
+- Icons:
+  Reworked button icons for better visibility in dark UI mode.
+
+Features:
+- Placement organicity:
+  We have a new slider called "Placement organicity". This value can be changed to adjust how "organic" you want your placement to be.
+
+- Placement methods:
+  We have 2 different methods for placement now. The Instantiate is the old one, and the Prefab option will keep the prefab connection
+  with the cost of disabled coloring options.
+
+- Heightmap preview:
+  You can zoom an pan the preview now.
+
+
+1.2.0:
+---------------------
+Changes:
+- Layer's material coloring "name" property behaviour:
+  If you delete the name property, the script will fill up with the default shader's color property name.
+  This can be handy if you switch rendering pipeline after the layers created. You just need to clear the property name, and you will get the correct one!
+
+Features:
+- Render Pipeline independence:
+  Now the editor preview generated with a compute shader, so now this package is independent from the render pipeline.
+  You can use it with the Standard RP, or URP, HDRP. Even with a custom Render Pipeline!
+
+
+1.1.0:
+---------------------
+Changes:
+- Object layers:
+  "Placement rarity" is now called "Placement density" and works in the opposite way. Bigger values means more objects.
+
+Fixes:
+- The icons will load even if you move the MassSpawner to another folder
+
+Improvements:
+- Documentation improvements
+- Better performance preview gizmos
+- Better labels for color group input fields (RGB/HSV instead of XYZ)
+
+Features:
+- URP Editor support:
+  You can now use this tool in URP projects as well
+
+
+1.0.0:
+---------------------
+  Initial version

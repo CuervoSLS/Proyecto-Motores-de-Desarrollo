@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 758a6bceec746428f9780a578eaa3f1b
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 191111
+  packageName: Mass Spawner - Object placement tool
+  packageVersion: 1.3.2
+  assetPath: Assets/Mass-Spawner---Object-placement-tool/ReleaseNotes.txt
+  uploadId: 467611

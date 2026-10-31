@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 853cd44a03b274c4181339d8f7c87bf1
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 191111
+  packageName: Mass Spawner - Object placement tool
+  packageVersion: 1.3.2
+  assetPath: Assets/Mass-Spawner---Object-placement-tool/Scripts/Classes/EditorUI.cs
+  uploadId: 467611
