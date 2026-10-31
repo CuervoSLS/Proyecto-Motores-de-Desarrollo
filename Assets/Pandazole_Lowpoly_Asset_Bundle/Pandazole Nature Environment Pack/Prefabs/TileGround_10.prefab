@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 9020517622717794064}
   - component: {fileID: 5368444040896432309}
   - component: {fileID: 7882561727305432191}
-  - component: {fileID: 5374243997777988574}
+  - component: {fileID: 7486493711668168202}
   m_Layer: 7
   m_Name: TileGround_10
   m_TagString: Untagged
@@ -91,8 +91,8 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &5374243997777988574
-MeshCollider:
+--- !u!65 &7486493711668168202
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -109,7 +109,6 @@ MeshCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 1
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 7568122532972454603, guid: c71ce10752eefd04aa5fb13188f2c7b3, type: 3}
+  serializedVersion: 3
+  m_Size: {x: 5, y: 0.85, z: 5}
+  m_Center: {x: 0, y: 0.45, z: 0}
