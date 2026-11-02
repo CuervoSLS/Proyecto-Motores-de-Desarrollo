@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 3696947702757709866}
   - component: {fileID: 1520028235260587495}
   m_Layer: 0
-  m_Name: Sphere
+  m_Name: AnclajeCuerda
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

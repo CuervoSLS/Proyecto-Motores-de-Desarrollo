@@ -245,7 +245,6 @@ public class Cuerda : MonoBehaviour
         {
             IgnorarColision(_controlador, false);
         }
-
         _ignorandoJugador = false;
     }
 
@@ -440,7 +439,10 @@ public class Cuerda : MonoBehaviour
         {
             _prev[k] = _pos[k] - desplazamiento;
         }
-
+        if (_cuerdaConGancho == true)
+        {
+            Destroy(gameObject);
+        }
         _indiceAgarre = -1;
         _bloqueInicio = -1;
         _bloqueFin = -2;
