@@ -1,21 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(CharacterController))]
-[RequireComponent(typeof(PlayerInput))]
-[RequireComponent(typeof(PlayerGround))]
-[RequireComponent(typeof(PlayerSprint))]
-[RequireComponent(typeof(PlayerSlide))]
-[RequireComponent(typeof(PlayerDash))]
-[RequireComponent(typeof(PlayerJump))]
-[RequireComponent(typeof(PlayerWallRun))]
-[RequireComponent(typeof(PlayerLiana))]
-[RequireComponent(typeof(PlayerRope))]
-[RequireComponent(typeof(PlayerLocomotion))]
-[RequireComponent(typeof(PlayerRotation))]
-[RequireComponent(typeof(PlayerCameraRecentering))]
-[RequireComponent(typeof(PlayerAnimation))]
-[RequireComponent(typeof(PlayerPush))]
 public class PlayerMovement : MonoBehaviour
 {
     public CharacterController _controller;
@@ -46,7 +31,6 @@ public class PlayerMovement : MonoBehaviour
     public PlayerRope Rope { get; private set; }
     public PlayerLocomotion Locomotion { get; private set; }
     public PlayerRotation Rotation { get; private set; }
-    public PlayerCameraRecentering Recentering { get; private set; }
     public PlayerAnimation Anim { get; private set; }
 
     private void Awake()
@@ -64,7 +48,6 @@ public class PlayerMovement : MonoBehaviour
         Rope = GetComponent<PlayerRope>();
         Locomotion = GetComponent<PlayerLocomotion>();
         Rotation = GetComponent<PlayerRotation>();
-        Recentering = GetComponent<PlayerCameraRecentering>();
         Anim = GetComponent<PlayerAnimation>();
 
         Ground.Init(this);
@@ -77,7 +60,6 @@ public class PlayerMovement : MonoBehaviour
         Rope.Init(this);
         Locomotion.Init(this);
         Rotation.Init(this);
-        Recentering.Init(this);
         Anim.Init(this);
         GetComponent<PlayerPush>().Init(this);
     }
@@ -92,8 +74,6 @@ public class PlayerMovement : MonoBehaviour
 
         Rope.LiberarIgnorada();
         if (!Rope.EnCuerda) Rope.Buscar();
-
-        Recentering.Actualizar();
 
         if (Rope.EnCuerda)
         {

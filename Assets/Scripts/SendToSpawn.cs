@@ -22,14 +22,14 @@ public class SendToSpawn : MonoBehaviour
 
     private void RespawnPlayer(Collider other)
     {
-        if (other.CompareTag("Player"))
-        {
-            PlayerSpawn spawn = other.GetComponent<PlayerSpawn>();
+        if (!other.CompareTag("Player")) return;
 
-            if (spawn != null)
-            {
-                spawn.Respawn();
-            }
-        }
+        PlayerSpawn spawn = other.GetComponentInParent<PlayerSpawn>();
+        if (spawn == null) return;
+
+        spawn.Respawn();
+
+        PlayerVoice voz = spawn.GetComponent<PlayerVoice>();
+        if (voz != null) voz.SonarMuerte();
     }
 }
