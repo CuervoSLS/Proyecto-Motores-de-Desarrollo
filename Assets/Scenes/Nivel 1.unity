@@ -26891,6 +26891,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 90
       objectReference: {fileID: 0}
+    - target: {fileID: 5044832422555132462, guid: 974b563e8a1b0de4a89c72506840fee3, type: 3}
+      propertyPath: _tiempoMaximoVuelo
+      value: 20
+      objectReference: {fileID: 0}
     - target: {fileID: 7836961304618210609, guid: 974b563e8a1b0de4a89c72506840fee3, type: 3}
       propertyPath: m_Name
       value: GanchoConCuerda
@@ -55062,7 +55066,7 @@ Transform:
   m_GameObject: {fileID: 1043576547}
   serializedVersion: 2
   m_LocalRotation: {x: 0.5, y: 0.5, z: -0.5, w: 0.5}
-  m_LocalPosition: {x: -39.5, y: 15, z: -90}
+  m_LocalPosition: {x: -39.5, y: 14, z: -90}
   m_LocalScale: {x: 10, y: 20, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -104918,7 +104922,7 @@ MonoBehaviour:
   _apuntado: {fileID: 2038615839}
   _estadoLanzamiento: L_Lanzamiento
   _delayLanzamiento: 0.25
-  _fuerzaLanzamiento: 25
+  _fuerzaLanzamiento: 30
 --- !u!114 &2038615860
 MonoBehaviour:
   m_ObjectHideFlags: 0

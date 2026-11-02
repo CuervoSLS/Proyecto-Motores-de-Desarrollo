@@ -47,7 +47,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb172ee279f129e43bdd9b7fb40d0245, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpawnPoint
-  audioSource: {fileID: 0}
+  audioSource: {fileID: 5098141497047591126}
 --- !u!65 &3547442683465512524
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -82,7 +82,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: d296adf47dd0a514fbd36b5ff7df9f9c, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.2
   m_Pitch: 1
   Loop: 0
   Mute: 0
