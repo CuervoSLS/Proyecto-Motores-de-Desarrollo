@@ -12,6 +12,9 @@ public class Cuerda : MonoBehaviour
     private const float VelocidadGiroBloque = 12f;
     private const float Epsilon = 0.0001f;
     private const float VelocidadRelajacion = 8f;
+    private const float UmbralReposo = 0.00000001f;
+    private const int FramesParaDormir = 30;
+    private const float SeparacionPiel = 0.01f;
 
     [Header("Cuerda")]
     [SerializeField] private Transform _anclaje;
@@ -43,6 +46,9 @@ public class Cuerda : MonoBehaviour
     [SerializeField] private bool _usarColision = true;
     [SerializeField] private float _radioColision = 0.08f;
     [SerializeField] private string _nombreCapa = "Cuerda";
+    [SerializeField] private bool _colisionarConMundo = true;
+    [SerializeField] private LayerMask _capasColision = ~0;
+    [SerializeField] private bool _colisionarConTodasLasCapas = true;
 
     private Transform _transform;
     private Vector3[] _pos;
@@ -71,6 +77,10 @@ public class Cuerda : MonoBehaviour
     private bool _ignorandoJugador;
     private Vector3 _manoAnterior;
     private Vector3 _anclaAnterior;
+    private bool _dormida;
+    private int _framesQuieta;
+    private Vector3 _anclaDormida;
+    private int _mascaraMundo;
 
     private Mesh _mesh;
     private Vector3[] _vertices;
@@ -130,15 +140,11 @@ public class Cuerda : MonoBehaviour
 
     private void Start()
     {
-        if (!_cuerdaConGancho) return;
+        if (_cuerdaConGancho || _colisionarConMundo) ResolverJugador();
 
-        ResolverJugador();
+        PrepararColisionMundo();
 
-        if (!_ganchoActivo)
-        {
-            Debug.LogWarning("Cuerda: no se encontro el jugador (tag Player), el gancho queda desactivado.", this);
-            return;
-        }
+        if (!_ganchoActivo) return;
 
         Vector3 ancla = Anclaje;
         Vector3 mano = PuntoMano();
@@ -178,6 +184,23 @@ public class Cuerda : MonoBehaviour
         }
     }
 
+    private void PrepararColisionMundo()
+    {
+        int capa = LayerMask.NameToLayer(_nombreCapa);
+        _mascaraMundo = _capasColision;
+
+        if (capa < 0) return;
+
+        _mascaraMundo &= ~(1 << capa);
+
+        if (!_usarColision || !_colisionarConTodasLasCapas) return;
+
+        for (int i = 0; i < 32; i++)
+        {
+            Physics.IgnoreLayerCollision(capa, i, false);
+        }
+    }
+
     private void ResolverJugador()
     {
         if (_jugador == null)
@@ -194,7 +217,7 @@ public class Cuerda : MonoBehaviour
         _jugador = _jugadorMov.transform;
         _suelo = _jugadorMov.Ground;
         _controlador = _jugadorMov._controller;
-        _ganchoActivo = _suelo != null && _controlador != null;
+        _ganchoActivo = _cuerdaConGancho && _suelo != null && _controlador != null;
     }
 
     private Vector3 PuntoMano()
@@ -245,6 +268,7 @@ public class Cuerda : MonoBehaviour
         {
             IgnorarColision(_controlador, false);
         }
+
         _ignorandoJugador = false;
     }
 
@@ -357,7 +381,7 @@ public class Cuerda : MonoBehaviour
     {
         indice = -1;
 
-        if (_ganchoActivo && _suelo.Grounded) return false;
+        if (_sostenida || (_ganchoActivo && _suelo.Grounded)) return false;
 
         float mejor = _radioAgarre * _radioAgarre;
 
@@ -439,10 +463,7 @@ public class Cuerda : MonoBehaviour
         {
             _prev[k] = _pos[k] - desplazamiento;
         }
-        if (_cuerdaConGancho == true)
-        {
-            Destroy(gameObject);
-        }
+
         _indiceAgarre = -1;
         _bloqueInicio = -1;
         _bloqueFin = -2;
@@ -457,16 +478,26 @@ public class Cuerda : MonoBehaviour
     {
         if (_sostenida)
         {
+            _dormida = false;
             if (!ActualizarSostenida()) return;
         }
         else
         {
+            if (_dormida)
+            {
+                if (_indiceAgarre < 0 && !_transform.hasChanged && Anclaje == _anclaDormida) return;
+
+                _dormida = false;
+                _framesQuieta = 0;
+            }
+
             Simular();
         }
 
         if (_indiceAgarre >= 0) ActualizarPuntoAgarre();
         ActualizarMalla();
         if (_usarColision) ActualizarColliders();
+        _transform.hasChanged = false;
     }
 
     private void ActualizarBloque(float dt, Vector3 ancla)
@@ -563,10 +594,63 @@ public class Cuerda : MonoBehaviour
             if (limitar) LimitarAngulos(cosMaximo);
         }
 
+        if (_colisionarConMundo) ColisionarConMundo();
+
         for (int k = _bloqueInicio; k <= _bloqueFin; k++)
         {
             _prev[k] = _pos[k];
         }
+
+        if (!agarrada && _zonaPre == 0) ComprobarReposo(ancla);
+        else _framesQuieta = 0;
+    }
+
+    private void ColisionarConMundo()
+    {
+        for (int i = 1; i < _pos.Length; i++)
+        {
+            if (EnBloque(i))
+            {
+                i = _bloqueFin;
+                continue;
+            }
+
+            Vector3 desde = _prev[i];
+            Vector3 desplazamiento = _pos[i] - desde;
+            float distancia = desplazamiento.magnitude;
+            if (distancia < Epsilon) continue;
+
+            Vector3 direccion = desplazamiento / distancia;
+            if (!Physics.SphereCast(desde, _radioColision, direccion, out RaycastHit golpe, distancia, _mascaraMundo, QueryTriggerInteraction.Ignore)) continue;
+
+            Transform tocado = golpe.collider.transform;
+            if (tocado.IsChildOf(_transform) || (_jugador != null && tocado.IsChildOf(_jugador))) continue;
+
+            float libre = Mathf.Max(0f, golpe.distance - SeparacionPiel);
+            _pos[i] = desde + direccion * libre;
+
+            Vector3 restante = _pos[i] - desde;
+            float haciaPared = Vector3.Dot(restante, golpe.normal);
+            if (haciaPared < 0f) restante -= golpe.normal * haciaPared;
+            _prev[i] = _pos[i] - restante;
+        }
+    }
+
+    private void ComprobarReposo(Vector3 ancla)
+    {
+        for (int i = 1; i < _pos.Length; i++)
+        {
+            if ((_pos[i] - _prev[i]).sqrMagnitude > UmbralReposo)
+            {
+                _framesQuieta = 0;
+                return;
+            }
+        }
+
+        if (++_framesQuieta < FramesParaDormir) return;
+
+        _dormida = true;
+        _anclaDormida = ancla;
     }
 
     private void LimitarAngulos(float cosMaximo)

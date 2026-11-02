@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Bala
   - Cuerda
+  - PuntoCuerda
   layers:
   - Default
   - TransparentFX
