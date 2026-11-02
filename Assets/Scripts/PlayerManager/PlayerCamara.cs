@@ -25,6 +25,7 @@ public class PlayerCamara : MonoBehaviour
 
     [SerializeField] private CinemachineCamera camara;
     [SerializeField] private Image puntero;
+    [SerializeField] private PlayerLanzamiento lanzamiento;
     [SerializeField] private ModoCamara modoNormal;
     [SerializeField] private ModoCamara modoLanzamiento;
     [SerializeField, Min(0.01f)] private float duracionTransicion;
@@ -43,6 +44,23 @@ public class PlayerCamara : MonoBehaviour
         }
 
         orbitalFollow.OrbitStyle = CinemachineOrbitalFollow.OrbitStyles.ThreeRing;
+
+        if (lanzamiento == null) lanzamiento = FindFirstObjectByType<PlayerLanzamiento>();
+    }
+
+    private void OnEnable()
+    {
+        if (lanzamiento != null) lanzamiento.CambioCamara += AlCambiarModo;
+    }
+
+    private void OnDisable()
+    {
+        if (lanzamiento != null) lanzamiento.CambioCamara -= AlCambiarModo;
+    }
+
+    private void AlCambiarModo(bool activo)
+    {
+        AplicarTransicion = activo;
     }
 
     private void Start()

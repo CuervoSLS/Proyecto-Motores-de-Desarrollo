@@ -6,12 +6,21 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class Cuerda : MonoBehaviour
 {
+    public enum DireccionInicial
+    {
+        Abajo,
+        Arriba,
+        Adelante,
+        Atras,
+        Izquierda,
+        Derecha
+    }
+
     public static readonly List<Cuerda> Todas = new List<Cuerda>();
 
     private const float PasoMaximo = 0.033f;
     private const float VelocidadGiroBloque = 12f;
     private const float Epsilon = 0.0001f;
-    private const float VelocidadRelajacion = 8f;
     private const float UmbralReposo = 0.00000001f;
     private const int FramesParaDormir = 30;
     private const float SeparacionPiel = 0.01f;
@@ -30,6 +39,11 @@ public class Cuerda : MonoBehaviour
     [SerializeField] private float _largoMinimoAgarre = 1.5f;
     [SerializeField, Min(1)] private int _segmentosAgarrados = 3;
     [SerializeField] private float _velocidadMaxima = 30f;
+    [SerializeField] private float _velocidadRecogida = 1.5f;
+
+    [Header("Aparicion")]
+    [SerializeField] private DireccionInicial _direccionInicial = DireccionInicial.Abajo;
+    [SerializeField] private bool _direccionRelativaAlObjeto = true;
 
     [Header("Gancho")]
     [SerializeField] private bool _cuerdaConGancho = false;
@@ -49,6 +63,7 @@ public class Cuerda : MonoBehaviour
     [SerializeField] private bool _colisionarConMundo = true;
     [SerializeField] private LayerMask _capasColision = ~0;
     [SerializeField] private bool _colisionarConTodasLasCapas = true;
+    [SerializeField] private bool _ignorarColisionConJugador = true;
 
     private Transform _transform;
     private Vector3[] _pos;
@@ -73,6 +88,8 @@ public class Cuerda : MonoBehaviour
     private PlayerGround _suelo;
     private CharacterController _controlador;
     private bool _ganchoActivo;
+    private bool _iniciada;
+    private bool _manoPendiente;
     private bool _sostenida;
     private bool _ignorandoJugador;
     private Vector3 _manoAnterior;
@@ -81,6 +98,7 @@ public class Cuerda : MonoBehaviour
     private int _framesQuieta;
     private Vector3 _anclaDormida;
     private int _mascaraMundo;
+    private float _dtAnterior;
 
     private Mesh _mesh;
     private Vector3[] _vertices;
@@ -93,6 +111,8 @@ public class Cuerda : MonoBehaviour
     private CapsuleCollider[] _capsulas;
     private Transform[] _transCapsulas;
     private float[] _alturas;
+
+    public bool Bloqueada { get; set; }
 
     public Vector3 Anclaje => _anclaje != null ? _anclaje.position : _transform.position;
 
@@ -116,9 +136,10 @@ public class Cuerda : MonoBehaviour
         _pinBloque = new Vector3[nodos];
 
         Vector3 origen = Anclaje;
+        Vector3 direccion = DireccionLocal();
         for (int i = 0; i < nodos; i++)
         {
-            _pos[i] = origen + Vector3.down * (_largoSegmento * i);
+            _pos[i] = origen + direccion * (_largoSegmento * i);
             _prev[i] = _pos[i];
         }
 
@@ -138,13 +159,49 @@ public class Cuerda : MonoBehaviour
         if (_usarColision) ActualizarColliders();
     }
 
+    private Vector3 DireccionLocal()
+    {
+        Vector3 local;
+        switch (_direccionInicial)
+        {
+            case DireccionInicial.Arriba: local = Vector3.up; break;
+            case DireccionInicial.Adelante: local = Vector3.forward; break;
+            case DireccionInicial.Atras: local = Vector3.back; break;
+            case DireccionInicial.Izquierda: local = Vector3.left; break;
+            case DireccionInicial.Derecha: local = Vector3.right; break;
+            default: local = Vector3.down; break;
+        }
+
+        return _direccionRelativaAlObjeto ? (_anclaje != null ? _anclaje : _transform).TransformDirection(local) : local;
+    }
+
     private void Start()
     {
-        if (_cuerdaConGancho || _colisionarConMundo) ResolverJugador();
+        if (_cuerdaConGancho || _colisionarConMundo || _ignorarColisionConJugador) ResolverJugador();
 
         PrepararColisionMundo();
 
-        if (!_ganchoActivo) return;
+        if (_ignorarColisionConJugador && _controlador != null) IgnorarColision(_controlador, true);
+
+        _iniciada = true;
+
+        if (!_manoPendiente) return;
+
+        _manoPendiente = false;
+        SostenerEnMano();
+    }
+
+    public void SostenerEnMano()
+    {
+        if (!_cuerdaConGancho || !_sostenerEnManoHastaSaltar) return;
+
+        if (!_iniciada)
+        {
+            _manoPendiente = true;
+            return;
+        }
+
+        if (!_ganchoActivo || _sostenida || _indiceAgarre >= 0) return;
 
         Vector3 ancla = Anclaje;
         Vector3 mano = PuntoMano();
@@ -152,12 +209,10 @@ public class Cuerda : MonoBehaviour
         _manoAnterior = mano;
         _anclaAnterior = ancla;
 
-        if (_sostenerEnManoHastaSaltar)
-        {
-            _sostenida = true;
-            _ignorandoJugador = true;
-            IgnorarColision(_controlador, true);
-        }
+        _sostenida = true;
+        _dormida = false;
+        _ignorandoJugador = true;
+        IgnorarColision(_controlador, true);
 
         ActualizarMalla();
         if (_usarColision) ActualizarColliders();
@@ -230,6 +285,9 @@ public class Cuerda : MonoBehaviour
         int ultimo = _pos.Length - 1;
         float inverso = 1f / ultimo;
 
+        _largoPreBloque = Vector3.Distance(ancla, mano) * inverso;
+        _zonaPre = ultimo;
+
         for (int i = 0; i <= ultimo; i++)
         {
             Vector3 punto = Vector3.Lerp(ancla, mano, i * inverso);
@@ -263,6 +321,14 @@ public class Cuerda : MonoBehaviour
     private void TerminarSostenida()
     {
         _sostenida = false;
+        _dtAnterior = 0f;
+
+        if (_indiceAgarre < 0)
+        {
+            int segmentos = _pos.Length - 1;
+            _largoPreBloque = Vector3.Distance(_pos[0], _pos[segmentos]) / segmentos;
+            _zonaPre = segmentos;
+        }
 
         if (_ignorandoJugador && _indiceAgarre < 0 && _controlador != null)
         {
@@ -371,6 +437,8 @@ public class Cuerda : MonoBehaviour
     {
         if (_capsulas == null || otro == null) return;
 
+        if (!ignorar && _ignorarColisionConJugador && otro == _controlador) ignorar = true;
+
         for (int i = 0; i < _capsulas.Length; i++)
         {
             Physics.IgnoreCollision(otro, _capsulas[i], ignorar);
@@ -381,7 +449,7 @@ public class Cuerda : MonoBehaviour
     {
         indice = -1;
 
-        if (_sostenida || (_ganchoActivo && _suelo.Grounded)) return false;
+        if (Bloqueada || _sostenida || (_ganchoActivo && _suelo.Grounded)) return false;
 
         float mejor = _radioAgarre * _radioAgarre;
 
@@ -489,6 +557,7 @@ public class Cuerda : MonoBehaviour
 
                 _dormida = false;
                 _framesQuieta = 0;
+                _dtAnterior = 0f;
             }
 
             Simular();
@@ -524,7 +593,9 @@ public class Cuerda : MonoBehaviour
     {
         float dt = Mathf.Min(Time.deltaTime, PasoMaximo);
         bool agarrada = _indiceAgarre >= 0;
-        float factor = Mathf.Pow(_amortiguacion, dt * 60f);
+        float escalaTiempo = _dtAnterior > Epsilon ? Mathf.Clamp(dt / _dtAnterior, 0.5f, 2f) : 1f;
+        float factor = Mathf.Pow(_amortiguacion, dt * 60f) * escalaTiempo;
+        _dtAnterior = dt;
         Vector3 impulsoGravedad = Vector3.up * (_gravedad * dt * dt);
         Vector3 ancla = Anclaje;
         int nodos = _pos.Length;
@@ -537,7 +608,7 @@ public class Cuerda : MonoBehaviour
         if (agarrada) ActualizarBloque(dt, ancla);
         else if (_zonaPre > 0)
         {
-            _largoPreBloque = Mathf.Lerp(_largoPreBloque, _largoSegmento, 1f - Mathf.Exp(-VelocidadRelajacion * dt));
+            _largoPreBloque = Mathf.MoveTowards(_largoPreBloque, _largoSegmento, _velocidadRecogida * dt);
             if (Mathf.Abs(_largoPreBloque - _largoSegmento) < 0.001f)
             {
                 _largoPreBloque = _largoSegmento;

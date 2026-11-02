@@ -19,6 +19,7 @@ public class PlayerMovement : MonoBehaviour
     public Vector2 InputUtil => _inputUtil;
     public Vector2 Look => _look;
     public float Rotate => _rotate;
+    public bool InputBloqueado { get => _inputBloqueado; set => _inputBloqueado = value; }
     public float VerticalVelocity { get; set; }
 
     public PlayerGround Ground { get; private set; }
@@ -32,6 +33,7 @@ public class PlayerMovement : MonoBehaviour
     public PlayerLocomotion Locomotion { get; private set; }
     public PlayerRotation Rotation { get; private set; }
     public PlayerAnimation Anim { get; private set; }
+    public PlayerLanzamiento Lanzamiento { get; private set; }
 
     private void Awake()
     {
@@ -49,6 +51,7 @@ public class PlayerMovement : MonoBehaviour
         Locomotion = GetComponent<PlayerLocomotion>();
         Rotation = GetComponent<PlayerRotation>();
         Anim = GetComponent<PlayerAnimation>();
+        Lanzamiento = GetComponent<PlayerLanzamiento>();
 
         Ground.Init(this);
         Sprint.Init(this);
@@ -61,16 +64,23 @@ public class PlayerMovement : MonoBehaviour
         Locomotion.Init(this);
         Rotation.Init(this);
         Anim.Init(this);
+        Lanzamiento.Init(this);
         GetComponent<PlayerPush>().Init(this);
     }
 
     private void Update()
     {
+        if (_inputBloqueado && _input.sqrMagnitude < 0.01f)
+        {
+            _inputBloqueado = false;
+        }
 
         _inputUtil = _inputBloqueado ? Vector2.zero : _input;
         _move = Liana.EnLiana ? new Vector2(0f, _inputUtil.y) : _inputUtil;
 
         float distanciaSuelo = Ground.Actualizar();
+
+        Lanzamiento.Actualizar();
 
         Rope.LiberarIgnorada();
         if (!Rope.EnCuerda) Rope.Buscar();
@@ -124,6 +134,11 @@ public class PlayerMovement : MonoBehaviour
     public void OnDash(InputAction.CallbackContext context)
     {
         Dash.OnDash(context);
+    }
+
+    public void OnLanzarGancho(InputAction.CallbackContext context)
+    {
+        Lanzamiento.OnLanzarGancho(context);
     }
 
     public void OnJump(InputAction.CallbackContext context)

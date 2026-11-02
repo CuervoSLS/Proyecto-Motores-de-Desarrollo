@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class DispararGancho : MonoBehaviour
 {
@@ -9,24 +8,14 @@ public class DispararGancho : MonoBehaviour
     public Transform player;
     public Camera camera;
     [SerializeField] private PlayerMovement _p;
-    public GameObject gancho;
 
-    [Header("Disparo")]
+    [Header("Apuntado")]
     public float distanciaMaxima = 50f;
-    [SerializeField] private string _tagPunto = "Cuerda";
     [SerializeField] private LayerMask _mascara = ~0;
-    [SerializeField] private bool _reemplazarGanchoAnterior = true;
 
     private Transform _raizJugador;
     private Transform _camaraTransform;
-    private GameObject _ganchoActual;
     private bool _listo;
-
-    public void Init(PlayerMovement p)
-    {
-        _p = p;
-        Resolver();
-    }
 
     private void Start()
     {
@@ -40,28 +29,23 @@ public class DispararGancho : MonoBehaviour
         if (player == null && _p != null) player = _p.transform;
         if (camera == null) camera = Camera.main;
 
-        _listo = _p != null && player != null && camera != null && gancho != null;
+        _listo = _p != null && player != null && camera != null;
         if (!_listo) return;
 
         _raizJugador = _p.transform;
         _camaraTransform = camera.transform;
     }
 
-    public void OnShoot(InputAction.CallbackContext context)
+    public Vector3 DireccionDesde(Vector3 origen)
     {
-        if (!context.performed || !_listo) return;
-        if (_p.Rope.EnCuerda || _p.Liana.EnLiana || _p.Ground.Grounded) return;
-        if (!BuscarPunto(out RaycastHit golpe)) return;
-        if (!golpe.collider.CompareTag(_tagPunto)) return;
+        if (!_listo) return camera != null ? camera.transform.forward : transform.forward;
 
-        Vector3 direccion = player.position - golpe.point;
-        Quaternion rotacion = direccion.sqrMagnitude > 0.0001f
-            ? Quaternion.FromToRotation(Vector3.up, direccion.normalized)
-            : Quaternion.identity;
+        Vector3 destino = BuscarPunto(out RaycastHit golpe)
+            ? golpe.point
+            : _camaraTransform.position + _camaraTransform.forward * distanciaMaxima;
 
-        if (_reemplazarGanchoAnterior && _ganchoActual != null) Destroy(_ganchoActual);
-
-        _ganchoActual = Instantiate(gancho, golpe.point, rotacion);
+        Vector3 direccion = destino - origen;
+        return direccion.sqrMagnitude > 0.0001f ? direccion.normalized : _camaraTransform.forward;
     }
 
     private bool BuscarPunto(out RaycastHit resultado)
