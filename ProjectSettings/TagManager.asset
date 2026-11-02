@@ -4,9 +4,8 @@
 TagManager:
   serializedVersion: 3
   tags:
-  - Bala
   - Cuerda
-  - PuntoCuerda
+  - Flecha
   layers:
   - Default
   - TransparentFX
@@ -19,8 +18,8 @@ TagManager:
   - Cuerda
   - ParedNormal
   - PisoCesped
-  - 
-  - 
+  - PisoMadera
+  - PisoRoca
   - 
   - 
   - 

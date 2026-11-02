@@ -16,6 +16,11 @@ public class PlayerVoice : MonoBehaviour
     [SerializeField] private GrupoSonido _saltarPersonaje;
     [SerializeField] private float _margenSilencio = 0.1f;
 
+    [Header("Vida")]
+    [SerializeField] private PlayerHeart _vidaJugador;
+    [SerializeField] private GrupoSonido _recibirDanio;
+    [SerializeField] private GrupoSonido _morir;
+
     [Header("Cambio de respiracion")]
     [SerializeField, Range(0f, 1f)] private float _umbralRapido = 0.6f;
     [SerializeField, Range(0f, 1f)] private float _umbralNormal = 0.25f;
@@ -59,11 +64,24 @@ public class PlayerVoice : MonoBehaviour
         _fuenteVoz.playOnAwake = false;
 
         _p.Jump.Saltado += AlSaltar;
+
+        if (_vidaJugador == null) _vidaJugador = FindFirstObjectByType<PlayerHeart>();
+        if (_vidaJugador != null)
+        {
+            _vidaJugador.Danio += AlRecibirDanio;
+            _vidaJugador.Murio += AlMorir;
+        }
     }
 
     private void OnDestroy()
     {
         if (_p != null && _p.Jump != null) _p.Jump.Saltado -= AlSaltar;
+
+        if (_vidaJugador != null)
+        {
+            _vidaJugador.Danio -= AlRecibirDanio;
+            _vidaJugador.Murio -= AlMorir;
+        }
     }
 
     private void Update()
@@ -159,15 +177,35 @@ public class PlayerVoice : MonoBehaviour
     {
         _cansancio = Mathf.Clamp01(_cansancio + _porSalto);
 
-        if (_fuenteVoz == null || _saltarPersonaje == null) return;
+        ReproducirVoz(_saltarPersonaje);
+    }
 
-        AudioClip clip = _saltarPersonaje.Elegir();
+    private void AlRecibirDanio(float cantidad)
+    {
+        ReproducirVoz(_recibirDanio);
+    }
+
+    public void SonarMuerte()
+    {
+        ReproducirVoz(_morir);
+    }
+
+    private void AlMorir()
+    {
+        SonarMuerte();
+    }
+
+    private void ReproducirVoz(GrupoSonido grupo)
+    {
+        if (_fuenteVoz == null || grupo == null) return;
+
+        AudioClip clip = grupo.Elegir();
         if (clip == null) return;
 
         _fuenteVoz.Stop();
         _fuenteVoz.clip = clip;
         _fuenteVoz.loop = false;
-        _fuenteVoz.volume = _saltarPersonaje.volumen;
+        _fuenteVoz.volume = grupo.volumen;
         _fuenteVoz.Play();
 
         _clipActual = null;
