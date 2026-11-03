@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3186811672540504300
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 933924462154702289}
+  - component: {fileID: 5133723461734719810}
+  m_Layer: 0
+  m_Name: LayeredMusic
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &933924462154702289
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3186811672540504300}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5133723461734719810
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3186811672540504300}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e056d0b7ebd3304c951a85a3e5e30e5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LayeredMusic
+  kick: {fileID: 8300000, guid: 8fb337569e6824b499dd001aaa4c886c, type: 3}
+  shaker: {fileID: 8300000, guid: e14bd6578abe867489c59c012a4eaa7e, type: 3}
+  perc: {fileID: 8300000, guid: f8eb1ae68e19ef64295899bf80448b86, type: 3}
+  snare: {fileID: 8300000, guid: 8cf9d33ce12f628408233990dbc60dc6, type: 3}
+  bass: {fileID: 8300000, guid: 1b0bf1890daf8f244b1aac323fc0e768, type: 3}
+  exit: {fileID: -8447979226266087668, guid: 2cb28bc2d3c9d544b85c13bdb2ac2f16, type: 2}
+  intensity: 0.3
