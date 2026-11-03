@@ -1,21 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(CharacterController))]
-[RequireComponent(typeof(PlayerInput))]
-[RequireComponent(typeof(PlayerGround))]
-[RequireComponent(typeof(PlayerSprint))]
-[RequireComponent(typeof(PlayerSlide))]
-[RequireComponent(typeof(PlayerDash))]
-[RequireComponent(typeof(PlayerJump))]
-[RequireComponent(typeof(PlayerWallRun))]
-[RequireComponent(typeof(PlayerLiana))]
-[RequireComponent(typeof(PlayerRope))]
-[RequireComponent(typeof(PlayerLocomotion))]
-[RequireComponent(typeof(PlayerRotation))]
-[RequireComponent(typeof(PlayerCameraRecentering))]
-[RequireComponent(typeof(PlayerAnimation))]
-[RequireComponent(typeof(PlayerPush))]
 public class PlayerMovement : MonoBehaviour
 {
     public CharacterController _controller;
@@ -34,6 +19,7 @@ public class PlayerMovement : MonoBehaviour
     public Vector2 InputUtil => _inputUtil;
     public Vector2 Look => _look;
     public float Rotate => _rotate;
+    public bool InputBloqueado { get => _inputBloqueado; set => _inputBloqueado = value; }
     public float VerticalVelocity { get; set; }
 
     public PlayerGround Ground { get; private set; }
@@ -46,8 +32,8 @@ public class PlayerMovement : MonoBehaviour
     public PlayerRope Rope { get; private set; }
     public PlayerLocomotion Locomotion { get; private set; }
     public PlayerRotation Rotation { get; private set; }
-    public PlayerCameraRecentering Recentering { get; private set; }
     public PlayerAnimation Anim { get; private set; }
+    public PlayerLanzamiento Lanzamiento { get; private set; }
 
     private void Awake()
     {
@@ -64,8 +50,8 @@ public class PlayerMovement : MonoBehaviour
         Rope = GetComponent<PlayerRope>();
         Locomotion = GetComponent<PlayerLocomotion>();
         Rotation = GetComponent<PlayerRotation>();
-        Recentering = GetComponent<PlayerCameraRecentering>();
         Anim = GetComponent<PlayerAnimation>();
+        Lanzamiento = GetComponent<PlayerLanzamiento>();
 
         Ground.Init(this);
         Sprint.Init(this);
@@ -77,23 +63,27 @@ public class PlayerMovement : MonoBehaviour
         Rope.Init(this);
         Locomotion.Init(this);
         Rotation.Init(this);
-        Recentering.Init(this);
         Anim.Init(this);
+        Lanzamiento.Init(this);
         GetComponent<PlayerPush>().Init(this);
     }
 
     private void Update()
     {
+        if (_inputBloqueado && _input.sqrMagnitude < 0.01f)
+        {
+            _inputBloqueado = false;
+        }
 
         _inputUtil = _inputBloqueado ? Vector2.zero : _input;
         _move = Liana.EnLiana ? new Vector2(0f, _inputUtil.y) : _inputUtil;
 
         float distanciaSuelo = Ground.Actualizar();
 
+        Lanzamiento.Actualizar();
+
         Rope.LiberarIgnorada();
         if (!Rope.EnCuerda) Rope.Buscar();
-
-        Recentering.Actualizar();
 
         if (Rope.EnCuerda)
         {
@@ -144,6 +134,11 @@ public class PlayerMovement : MonoBehaviour
     public void OnDash(InputAction.CallbackContext context)
     {
         Dash.OnDash(context);
+    }
+
+    public void OnLanzarGancho(InputAction.CallbackContext context)
+    {
+        Lanzamiento.OnLanzarGancho(context);
     }
 
     public void OnJump(InputAction.CallbackContext context)
