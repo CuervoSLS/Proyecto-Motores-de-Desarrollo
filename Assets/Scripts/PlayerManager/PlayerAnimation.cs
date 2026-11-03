@@ -4,7 +4,6 @@ public class PlayerAnimation : MonoBehaviour
 {
     [Header("Animaciones")]
     [SerializeField] private float _tiempoTransicion = 0.1f;
-    [SerializeField] private bool _repetirAnimacionesEnLoop = true;
     [SerializeField] private float _distanciaAterrizaje = 0.5f;
 
     [Header("Estados del Animator")]
@@ -28,12 +27,32 @@ public class PlayerAnimation : MonoBehaviour
     [SerializeField] private string _estadoDashInicio = "DashInicio";
     [SerializeField] private string _estadoDashFinal = "DashFinal";
 
+    [Header("Estados modo lanzamiento")]
+    [SerializeField] private string _estadoLanzarQuieto = "L_Idle";
+    [SerializeField] private string _estadoLanzarAdelante = "L_CaminarAdelante";
+    [SerializeField] private string _estadoLanzarAtras = "L_CaminarAtras";
+    [SerializeField] private string _estadoLanzarIzq = "L_CaminarIzquierda";
+    [SerializeField] private string _estadoLanzarDer = "L_CaminarDerecha";
+    [SerializeField] private string _estadoLanzarCorrer = "L_CorrerAdelante";
+
     private PlayerMovement _p;
     private bool _enAire;
     private string _estadoAnimActual = "";
     private PlayerVoice _respiracion;
+    private string _estadoAccion = "";
+    private bool _accionCancelable = true;
 
     public string EstadoDashFinal => _estadoDashFinal;
+    public bool EnAccion => _estadoAccion.Length > 0;
+
+    public void ReproducirUnaVez(string estado, bool cancelarAlMoverse = true)
+    {
+        if (string.IsNullOrEmpty(estado)) return;
+
+        _estadoAccion = estado;
+        _accionCancelable = cancelarAlMoverse;
+        _estadoAnimActual = "";
+    }
 
     public void Init(PlayerMovement p)
     {
@@ -76,14 +95,21 @@ public class PlayerAnimation : MonoBehaviour
 
         bool enDashFinal = _p.Dash.EnDashFinal;
 
+        if (_estadoAccion.Length > 0 && (agarrado || wallRun || dashing || (_accionCancelable && move.sqrMagnitude > 0.01f)))
+        {
+            _estadoAccion = "";
+        }
+
         string estadoPared = _p.WallRun.LadoPared < 0 ? _estadoWallRunDer : _estadoWallRunIzq;
         string estado;
-        if (dashing && !_p.Dash.DashEnAire && !string.IsNullOrEmpty(_estadoDashInicio)) estado = _estadoDashInicio;
+        if (_estadoAccion.Length > 0) estado = _estadoAccion;
+        else if (dashing && !_p.Dash.DashEnAire && !string.IsNullOrEmpty(_estadoDashInicio)) estado = _estadoDashInicio;
         else if (enDashFinal) estado = _estadoDashFinal;
         else if (liana && !string.IsNullOrEmpty(_estadoLiana)) estado = _estadoLiana;
         else if (enCuerda && !string.IsNullOrEmpty(_estadoCuerda)) estado = _estadoCuerda;
         else if (wallRun && !string.IsNullOrEmpty(estadoPared)) estado = estadoPared;
         else if (_enAire) estado = _estadoEnElAire;
+        else if (_p.Lanzamiento.Activo) estado = EstadoLanzamiento(move);
         else estado = EstadoLocomocion(move, sliding);
 
         if (string.IsNullOrEmpty(estado)) return;
@@ -99,6 +125,17 @@ public class PlayerAnimation : MonoBehaviour
         if (animator.IsInTransition(0))
         {
             animator.speed = VelocidadEstado(estado);
+            return;
+        }
+
+        if (_estadoAccion.Length > 0 && estado == _estadoAccion)
+        {
+            animator.speed = 1f;
+            AnimatorStateInfo infoAccion = animator.GetCurrentAnimatorStateInfo(0);
+            if (infoAccion.IsName(_estadoAccion) && infoAccion.normalizedTime >= 1f)
+            {
+                _estadoAccion = "";
+            }
             return;
         }
 
@@ -134,25 +171,31 @@ public class PlayerAnimation : MonoBehaviour
         }
 
         animator.speed = VelocidadEstado(estado);
-
-        if (_repetirAnimacionesEnLoop)
-        {
-            AnimatorStateInfo info = animator.GetCurrentAnimatorStateInfo(0);
-            if (info.IsName(estado) && info.normalizedTime >= 1f)
-            {
-                animator.Play(estado, 0, 0f);
-            }
-        }
     }
 
     private float VelocidadEstado(string estado)
     {
+
         if (_respiracion != null && estado == _estadoQuieto)
         {
             return _respiracion.VelocidadAnimacionQuieto;
         }
 
         return 1f;
+    }
+
+    private string EstadoLanzamiento(Vector2 move)
+    {
+        if (move.sqrMagnitude < 0.01f) return _estadoLanzarQuieto;
+
+        if (Mathf.Abs(move.x) > Mathf.Abs(move.y))
+        {
+            return move.x < 0f ? _estadoLanzarIzq : _estadoLanzarDer;
+        }
+
+        if (move.y > 0f) return _p.Sprint.Sprinting ? _estadoLanzarCorrer : _estadoLanzarAdelante;
+
+        return _estadoLanzarAtras;
     }
 
     private string EstadoLocomocion(Vector2 move, bool sliding)

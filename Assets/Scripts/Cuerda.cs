@@ -6,12 +6,24 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class Cuerda : MonoBehaviour
 {
+    public enum DireccionInicial
+    {
+        Abajo,
+        Arriba,
+        Adelante,
+        Atras,
+        Izquierda,
+        Derecha
+    }
+
     public static readonly List<Cuerda> Todas = new List<Cuerda>();
 
     private const float PasoMaximo = 0.033f;
     private const float VelocidadGiroBloque = 12f;
     private const float Epsilon = 0.0001f;
-    private const float VelocidadRelajacion = 8f;
+    private const float UmbralReposo = 0.00000001f;
+    private const int FramesParaDormir = 30;
+    private const float SeparacionPiel = 0.01f;
 
     [Header("Cuerda")]
     [SerializeField] private Transform _anclaje;
@@ -27,6 +39,17 @@ public class Cuerda : MonoBehaviour
     [SerializeField] private float _largoMinimoAgarre = 1.5f;
     [SerializeField, Min(1)] private int _segmentosAgarrados = 3;
     [SerializeField] private float _velocidadMaxima = 30f;
+    [SerializeField] private float _velocidadRecogida = 1.5f;
+
+    [Header("Aparicion")]
+    [SerializeField] private DireccionInicial _direccionInicial = DireccionInicial.Abajo;
+    [SerializeField] private bool _direccionRelativaAlObjeto = true;
+
+    [Header("Gancho")]
+    [SerializeField] private bool _cuerdaConGancho = false;
+    [SerializeField] private bool _sostenerEnManoHastaSaltar = true;
+    [SerializeField] private Transform _jugador;
+    [SerializeField] private float _alturaMano = 1.7f;
 
     [Header("Malla")]
     [SerializeField] private float _radio = 0.05f;
@@ -37,6 +60,10 @@ public class Cuerda : MonoBehaviour
     [SerializeField] private bool _usarColision = true;
     [SerializeField] private float _radioColision = 0.08f;
     [SerializeField] private string _nombreCapa = "Cuerda";
+    [SerializeField] private bool _colisionarConMundo = true;
+    [SerializeField] private LayerMask _capasColision = ~0;
+    [SerializeField] private bool _colisionarConTodasLasCapas = true;
+    [SerializeField] private bool _ignorarColisionConJugador = true;
 
     private Transform _transform;
     private Vector3[] _pos;
@@ -57,6 +84,22 @@ public class Cuerda : MonoBehaviour
     private float _yawPunto;
     private int _zonaPre;
 
+    private PlayerMovement _jugadorMov;
+    private PlayerGround _suelo;
+    private CharacterController _controlador;
+    private bool _ganchoActivo;
+    private bool _iniciada;
+    private bool _manoPendiente;
+    private bool _sostenida;
+    private bool _ignorandoJugador;
+    private Vector3 _manoAnterior;
+    private Vector3 _anclaAnterior;
+    private bool _dormida;
+    private int _framesQuieta;
+    private Vector3 _anclaDormida;
+    private int _mascaraMundo;
+    private float _dtAnterior;
+
     private Mesh _mesh;
     private Vector3[] _vertices;
     private Vector3[] _normales;
@@ -68,6 +111,8 @@ public class Cuerda : MonoBehaviour
     private CapsuleCollider[] _capsulas;
     private Transform[] _transCapsulas;
     private float[] _alturas;
+
+    public bool Bloqueada { get; set; }
 
     public Vector3 Anclaje => _anclaje != null ? _anclaje.position : _transform.position;
 
@@ -91,9 +136,10 @@ public class Cuerda : MonoBehaviour
         _pinBloque = new Vector3[nodos];
 
         Vector3 origen = Anclaje;
+        Vector3 direccion = DireccionLocal();
         for (int i = 0; i < nodos; i++)
         {
-            _pos[i] = origen + Vector3.down * (_largoSegmento * i);
+            _pos[i] = origen + direccion * (_largoSegmento * i);
             _prev[i] = _pos[i];
         }
 
@@ -108,6 +154,65 @@ public class Cuerda : MonoBehaviour
 
         CrearMalla(nodos);
         if (_usarColision) CrearColliders();
+
+        ActualizarMalla();
+        if (_usarColision) ActualizarColliders();
+    }
+
+    private Vector3 DireccionLocal()
+    {
+        Vector3 local;
+        switch (_direccionInicial)
+        {
+            case DireccionInicial.Arriba: local = Vector3.up; break;
+            case DireccionInicial.Adelante: local = Vector3.forward; break;
+            case DireccionInicial.Atras: local = Vector3.back; break;
+            case DireccionInicial.Izquierda: local = Vector3.left; break;
+            case DireccionInicial.Derecha: local = Vector3.right; break;
+            default: local = Vector3.down; break;
+        }
+
+        return _direccionRelativaAlObjeto ? (_anclaje != null ? _anclaje : _transform).TransformDirection(local) : local;
+    }
+
+    private void Start()
+    {
+        if (_cuerdaConGancho || _colisionarConMundo || _ignorarColisionConJugador) ResolverJugador();
+
+        PrepararColisionMundo();
+
+        if (_ignorarColisionConJugador && _controlador != null) IgnorarColision(_controlador, true);
+
+        _iniciada = true;
+
+        if (!_manoPendiente) return;
+
+        _manoPendiente = false;
+        SostenerEnMano();
+    }
+
+    public void SostenerEnMano()
+    {
+        if (!_cuerdaConGancho || !_sostenerEnManoHastaSaltar) return;
+
+        if (!_iniciada)
+        {
+            _manoPendiente = true;
+            return;
+        }
+
+        if (!_ganchoActivo || _sostenida || _indiceAgarre >= 0) return;
+
+        Vector3 ancla = Anclaje;
+        Vector3 mano = PuntoMano();
+        ColocarEnLinea(ancla, mano);
+        _manoAnterior = mano;
+        _anclaAnterior = ancla;
+
+        _sostenida = true;
+        _dormida = false;
+        _ignorandoJugador = true;
+        IgnorarColision(_controlador, true);
 
         ActualizarMalla();
         if (_usarColision) ActualizarColliders();
@@ -132,6 +237,105 @@ public class Cuerda : MonoBehaviour
             _puntoAgarre.DetachChildren();
             Destroy(_puntoAgarre.gameObject);
         }
+    }
+
+    private void PrepararColisionMundo()
+    {
+        int capa = LayerMask.NameToLayer(_nombreCapa);
+        _mascaraMundo = _capasColision;
+
+        if (capa < 0) return;
+
+        _mascaraMundo &= ~(1 << capa);
+
+        if (!_usarColision || !_colisionarConTodasLasCapas) return;
+
+        for (int i = 0; i < 32; i++)
+        {
+            Physics.IgnoreLayerCollision(capa, i, false);
+        }
+    }
+
+    private void ResolverJugador()
+    {
+        if (_jugador == null)
+        {
+            GameObject encontrado = GameObject.FindGameObjectWithTag("Player");
+            if (encontrado != null) _jugador = encontrado.transform;
+        }
+
+        if (_jugador == null) return;
+
+        _jugadorMov = _jugador.GetComponentInParent<PlayerMovement>();
+        if (_jugadorMov == null) return;
+
+        _jugador = _jugadorMov.transform;
+        _suelo = _jugadorMov.Ground;
+        _controlador = _jugadorMov._controller;
+        _ganchoActivo = _cuerdaConGancho && _suelo != null && _controlador != null;
+    }
+
+    private Vector3 PuntoMano()
+    {
+        return _jugador.position + Vector3.up * _alturaMano;
+    }
+
+    private void ColocarEnLinea(Vector3 ancla, Vector3 mano)
+    {
+        int ultimo = _pos.Length - 1;
+        float inverso = 1f / ultimo;
+
+        _largoPreBloque = Vector3.Distance(ancla, mano) * inverso;
+        _zonaPre = ultimo;
+
+        for (int i = 0; i <= ultimo; i++)
+        {
+            Vector3 punto = Vector3.Lerp(ancla, mano, i * inverso);
+            _pos[i] = punto;
+            _prev[i] = punto;
+        }
+    }
+
+    private bool ActualizarSostenida()
+    {
+        if (_indiceAgarre < 0 && _suelo.Grounded) return MantenerEnMano();
+
+        TerminarSostenida();
+        Simular();
+        return true;
+    }
+
+    private bool MantenerEnMano()
+    {
+        Vector3 ancla = Anclaje;
+        Vector3 mano = PuntoMano();
+
+        if (mano == _manoAnterior && ancla == _anclaAnterior) return false;
+
+        _manoAnterior = mano;
+        _anclaAnterior = ancla;
+        ColocarEnLinea(ancla, mano);
+        return true;
+    }
+
+    private void TerminarSostenida()
+    {
+        _sostenida = false;
+        _dtAnterior = 0f;
+
+        if (_indiceAgarre < 0)
+        {
+            int segmentos = _pos.Length - 1;
+            _largoPreBloque = Vector3.Distance(_pos[0], _pos[segmentos]) / segmentos;
+            _zonaPre = segmentos;
+        }
+
+        if (_ignorandoJugador && _indiceAgarre < 0 && _controlador != null)
+        {
+            IgnorarColision(_controlador, false);
+        }
+
+        _ignorandoJugador = false;
     }
 
     private void CrearMalla(int nodos)
@@ -233,6 +437,8 @@ public class Cuerda : MonoBehaviour
     {
         if (_capsulas == null || otro == null) return;
 
+        if (!ignorar && _ignorarColisionConJugador && otro == _controlador) ignorar = true;
+
         for (int i = 0; i < _capsulas.Length; i++)
         {
             Physics.IgnoreCollision(otro, _capsulas[i], ignorar);
@@ -242,6 +448,9 @@ public class Cuerda : MonoBehaviour
     public bool TryAgarrar(Vector3 punto, out int indice)
     {
         indice = -1;
+
+        if (Bloqueada || _sostenida || (_ganchoActivo && _suelo.Grounded)) return false;
+
         float mejor = _radioAgarre * _radioAgarre;
 
         for (int i = 1; i < _pos.Length; i++)
@@ -335,10 +544,29 @@ public class Cuerda : MonoBehaviour
 
     private void LateUpdate()
     {
-        Simular();
+        if (_sostenida)
+        {
+            _dormida = false;
+            if (!ActualizarSostenida()) return;
+        }
+        else
+        {
+            if (_dormida)
+            {
+                if (_indiceAgarre < 0 && !_transform.hasChanged && Anclaje == _anclaDormida) return;
+
+                _dormida = false;
+                _framesQuieta = 0;
+                _dtAnterior = 0f;
+            }
+
+            Simular();
+        }
+
         if (_indiceAgarre >= 0) ActualizarPuntoAgarre();
         ActualizarMalla();
         if (_usarColision) ActualizarColliders();
+        _transform.hasChanged = false;
     }
 
     private void ActualizarBloque(float dt, Vector3 ancla)
@@ -365,7 +593,9 @@ public class Cuerda : MonoBehaviour
     {
         float dt = Mathf.Min(Time.deltaTime, PasoMaximo);
         bool agarrada = _indiceAgarre >= 0;
-        float factor = Mathf.Pow(_amortiguacion, dt * 60f);
+        float escalaTiempo = _dtAnterior > Epsilon ? Mathf.Clamp(dt / _dtAnterior, 0.5f, 2f) : 1f;
+        float factor = Mathf.Pow(_amortiguacion, dt * 60f) * escalaTiempo;
+        _dtAnterior = dt;
         Vector3 impulsoGravedad = Vector3.up * (_gravedad * dt * dt);
         Vector3 ancla = Anclaje;
         int nodos = _pos.Length;
@@ -378,7 +608,7 @@ public class Cuerda : MonoBehaviour
         if (agarrada) ActualizarBloque(dt, ancla);
         else if (_zonaPre > 0)
         {
-            _largoPreBloque = Mathf.Lerp(_largoPreBloque, _largoSegmento, 1f - Mathf.Exp(-VelocidadRelajacion * dt));
+            _largoPreBloque = Mathf.MoveTowards(_largoPreBloque, _largoSegmento, _velocidadRecogida * dt);
             if (Mathf.Abs(_largoPreBloque - _largoSegmento) < 0.001f)
             {
                 _largoPreBloque = _largoSegmento;
@@ -435,10 +665,63 @@ public class Cuerda : MonoBehaviour
             if (limitar) LimitarAngulos(cosMaximo);
         }
 
+        if (_colisionarConMundo) ColisionarConMundo();
+
         for (int k = _bloqueInicio; k <= _bloqueFin; k++)
         {
             _prev[k] = _pos[k];
         }
+
+        if (!agarrada && _zonaPre == 0) ComprobarReposo(ancla);
+        else _framesQuieta = 0;
+    }
+
+    private void ColisionarConMundo()
+    {
+        for (int i = 1; i < _pos.Length; i++)
+        {
+            if (EnBloque(i))
+            {
+                i = _bloqueFin;
+                continue;
+            }
+
+            Vector3 desde = _prev[i];
+            Vector3 desplazamiento = _pos[i] - desde;
+            float distancia = desplazamiento.magnitude;
+            if (distancia < Epsilon) continue;
+
+            Vector3 direccion = desplazamiento / distancia;
+            if (!Physics.SphereCast(desde, _radioColision, direccion, out RaycastHit golpe, distancia, _mascaraMundo, QueryTriggerInteraction.Ignore)) continue;
+
+            Transform tocado = golpe.collider.transform;
+            if (tocado.IsChildOf(_transform) || (_jugador != null && tocado.IsChildOf(_jugador))) continue;
+
+            float libre = Mathf.Max(0f, golpe.distance - SeparacionPiel);
+            _pos[i] = desde + direccion * libre;
+
+            Vector3 restante = _pos[i] - desde;
+            float haciaPared = Vector3.Dot(restante, golpe.normal);
+            if (haciaPared < 0f) restante -= golpe.normal * haciaPared;
+            _prev[i] = _pos[i] - restante;
+        }
+    }
+
+    private void ComprobarReposo(Vector3 ancla)
+    {
+        for (int i = 1; i < _pos.Length; i++)
+        {
+            if ((_pos[i] - _prev[i]).sqrMagnitude > UmbralReposo)
+            {
+                _framesQuieta = 0;
+                return;
+            }
+        }
+
+        if (++_framesQuieta < FramesParaDormir) return;
+
+        _dormida = true;
+        _anclaDormida = ancla;
     }
 
     private void LimitarAngulos(float cosMaximo)

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Audio;
+using UnityEngine.Serialization;
 
 [System.Serializable]
 public class GrupoSonido
@@ -27,11 +28,14 @@ public class PlayerSound : MonoBehaviour
     [SerializeField] private AudioSource _fuenteEfectos;
 
     [Header("Grupos del Audio Mixer")]
-    [SerializeField] private AudioMixerGroup _grupoSonidos;
+    [SerializeField] private AudioMixerGroup _grupoPasos;
+    [SerializeField] private AudioMixerGroup _grupoEfectos;
 
     [Header("Deteccion de superficie")]
     [SerializeField] private string _nombreLayerTierra = "PisoTierra";
     [SerializeField] private string _nombreLayerCesped = "PisoCesped";
+    [SerializeField] private string _nombreLayerRoca = "PisoRoca";
+    [SerializeField] private string _nombreLayerMadera = "PisoMadera";
     [SerializeField] private string _nombreLayerParedWallRun = "ParedWallRun";
     [SerializeField] private bool _depurar = true;
 
@@ -43,17 +47,36 @@ public class PlayerSound : MonoBehaviour
     [SerializeField] private GrupoSonido _caminarCesped;
     [SerializeField] private GrupoSonido _correrCesped;
 
+    [Header("Pasos en roca (el wall run usa Correr Roca)")]
+    [SerializeField] private GrupoSonido _caminarRoca;
+    [SerializeField] private GrupoSonido _correrRoca;
+
+    [Header("Pasos en madera")]
+    [SerializeField] private GrupoSonido _caminarMadera;
+    [SerializeField] private GrupoSonido _correrMadera;
+
     [Header("Pasos")]
     [SerializeField] private float _intervaloCaminar = 0.5f;
     [SerializeField] private float _intervaloCorrer = 0.3f;
     [SerializeField] private float _variacionPitchPasos = 0.1f;
 
     [Header("Wall run")]
-    [SerializeField] private GrupoSonido _wallRunPiedra;
     [SerializeField] private float _intervaloWallRun = 0.35f;
 
-    [Header("Salto y dash")]
-    [SerializeField] private GrupoSonido _saltar;
+    [Header("Salto segun la superficie")]
+    [SerializeField, FormerlySerializedAs("_saltar")] private GrupoSonido _saltarTierra;
+    [SerializeField] private GrupoSonido _saltarCesped;
+    [SerializeField] private GrupoSonido _saltarRoca;
+    [SerializeField] private GrupoSonido _saltarMadera;
+
+    [Header("Aterrizaje segun la superficie")]
+    [SerializeField] private GrupoSonido _aterrizarTierra;
+    [SerializeField] private GrupoSonido _aterrizarCesped;
+    [SerializeField] private GrupoSonido _aterrizarRoca;
+    [SerializeField] private GrupoSonido _aterrizarMadera;
+    [SerializeField] private float _tiempoMinimoEnAire = 0.2f;
+
+    [Header("Dash")]
     [SerializeField] private GrupoSonido _dash;
 
     [Header("Liana")]
@@ -61,36 +84,50 @@ public class PlayerSound : MonoBehaviour
     [SerializeField] private float _distanciaPorSonido = 0.6f;
 
     private PlayerMovement _p;
-    private PlayerVoice _respiracion;
     private float _temporizadorPaso;
     private float _temporizadorWallRun;
     private bool _enLianaAnterior;
     private bool _dashAnterior;
+    private bool _enSueloAnterior;
+    private float _tiempoEnAire;
     private float _ultimaAltura;
     private float _alturaAcumulada;
     private int _capaTierra = -1;
     private int _capaCesped = -1;
+    private int _capaRoca = -1;
+    private int _capaMadera = -1;
     private int _capaParedWallRun = -1;
     private string _ultimaClaveDebug = "";
 
     private void Start()
     {
         _p = GetComponent<PlayerMovement>();
-        _respiracion = GetComponent<PlayerVoice>();
 
         if (_fuentePasos == null) _fuentePasos = CrearFuente();
         if (_fuenteEfectos == null) _fuenteEfectos = CrearFuente();
 
-        if (_grupoSonidos != null) _fuentePasos.outputAudioMixerGroup = _grupoSonidos;
+        if (_grupoPasos != null) _fuentePasos.outputAudioMixerGroup = _grupoPasos;
+        if (_grupoEfectos != null) _fuenteEfectos.outputAudioMixerGroup = _grupoEfectos;
 
         _capaTierra = LayerMask.NameToLayer(_nombreLayerTierra);
         _capaCesped = LayerMask.NameToLayer(_nombreLayerCesped);
+        _capaRoca = LayerMask.NameToLayer(_nombreLayerRoca);
+        _capaMadera = LayerMask.NameToLayer(_nombreLayerMadera);
         _capaParedWallRun = LayerMask.NameToLayer(_nombreLayerParedWallRun);
 
         if (_capaTierra < 0) Debug.LogWarning("PlayerSound: no existe el layer " + _nombreLayerTierra, this);
         if (_capaCesped < 0) Debug.LogWarning("PlayerSound: no existe el layer " + _nombreLayerCesped, this);
+        if (_capaRoca < 0) Debug.LogWarning("PlayerSound: no existe el layer " + _nombreLayerRoca, this);
+        if (_capaMadera < 0) Debug.LogWarning("PlayerSound: no existe el layer " + _nombreLayerMadera, this);
         if (_capaParedWallRun < 0) Debug.LogWarning("PlayerSound: no existe el layer " + _nombreLayerParedWallRun, this);
+
+        _p.Jump.Saltado += AlSaltar;
         _ultimaAltura = transform.position.y;
+    }
+
+    private void OnDestroy()
+    {
+        if (_p != null && _p.Jump != null) _p.Jump.Saltado -= AlSaltar;
     }
 
     private void LateUpdate()
@@ -105,7 +142,9 @@ public class PlayerSound : MonoBehaviour
         DetectarAlturaLiana(enLiana);
         ActualizarPasos(enLiana, enCuerda, dashing);
         ActualizarWallRun();
+        DetectarAterrizaje(_p.Ground.Grounded);
 
+        _enSueloAnterior = _p.Ground.Grounded;
         _enLianaAnterior = enLiana;
         _dashAnterior = dashing;
         _ultimaAltura = transform.position.y;
@@ -179,7 +218,7 @@ public class PlayerSound : MonoBehaviour
 
         Collider pared = _p.WallRun.Pared;
         int capa = pared != null ? pared.gameObject.layer : -1;
-        GrupoSonido grupo = capa >= 0 && capa == _capaParedWallRun ? _wallRunPiedra : null;
+        GrupoSonido grupo = capa >= 0 && capa == _capaParedWallRun ? _correrRoca : null;
 
         if (_depurar) Depurar("wallrun", capa, grupo);
 
@@ -198,6 +237,8 @@ public class PlayerSound : MonoBehaviour
         {
             if (capa == _capaTierra) grupo = corriendo ? _correrTierra : _caminarTierra;
             else if (capa == _capaCesped) grupo = corriendo ? _correrCesped : _caminarCesped;
+            else if (capa == _capaRoca) grupo = corriendo ? _correrRoca : _caminarRoca;
+            else if (capa == _capaMadera) grupo = corriendo ? _correrMadera : _caminarMadera;
         }
 
         if (_depurar) Depurar("pasos", capa, grupo);
@@ -228,15 +269,71 @@ public class PlayerSound : MonoBehaviour
         Debug.Log("PlayerSound " + contexto + " -> layer: " + nombreCapa + " | " + estado, this);
     }
 
-    private AudioClip Reproducir(GrupoSonido grupo, AudioSource fuente)
+    private void DetectarAterrizaje(bool enSuelo)
     {
-        if (grupo == null || fuente == null) return null;
+        if (!enSuelo)
+        {
+            _tiempoEnAire += Time.deltaTime;
+            return;
+        }
+
+        bool aterrizo = !_enSueloAnterior && _tiempoEnAire >= _tiempoMinimoEnAire;
+        _tiempoEnAire = 0f;
+
+        if (!aterrizo) return;
+
+        int capa = CapaDelPiso();
+        GrupoSonido grupo = ElegirAterrizaje(capa);
+
+        if (_depurar) Depurar("aterrizaje", capa, grupo);
+
+        Reproducir(grupo, _fuenteEfectos);
+    }
+
+    private GrupoSonido ElegirAterrizaje(int capa)
+    {
+        if (capa < 0) return null;
+
+        if (capa == _capaTierra) return _aterrizarTierra;
+        if (capa == _capaCesped) return _aterrizarCesped;
+        if (capa == _capaRoca) return _aterrizarRoca;
+        if (capa == _capaMadera) return _aterrizarMadera;
+
+        return null;
+    }
+
+    private void AlSaltar()
+    {
+        if (!_p.Ground.Grounded) return;
+
+        int capa = CapaDelPiso();
+        GrupoSonido grupo = ElegirSalto(capa);
+
+        if (_depurar) Depurar("salto", capa, grupo);
+
+        Reproducir(grupo, _fuenteEfectos);
+    }
+
+    private GrupoSonido ElegirSalto(int capa)
+    {
+        if (capa < 0) return null;
+
+        if (capa == _capaTierra) return _saltarTierra;
+        if (capa == _capaCesped) return _saltarCesped;
+        if (capa == _capaRoca) return _saltarRoca;
+        if (capa == _capaMadera) return _saltarMadera;
+
+        return null;
+    }
+
+    private void Reproducir(GrupoSonido grupo, AudioSource fuente)
+    {
+        if (grupo == null || fuente == null) return;
 
         AudioClip clip = grupo.Elegir();
-        if (clip == null) return null;
+        if (clip == null) return;
 
         fuente.PlayOneShot(clip, grupo.volumen);
-        return clip;
     }
 
     private AudioSource CrearFuente()

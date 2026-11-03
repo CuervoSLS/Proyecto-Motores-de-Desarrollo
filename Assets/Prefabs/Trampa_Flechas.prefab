@@ -81,7 +81,9 @@ MonoBehaviour:
   distanciaMaximaLaser: 20
   capasObstaculos:
     serializedVersion: 2
-    m_Bits: 72
+    m_Bits: 584
+  distanciaActivacion: 30
+  laserSoloCuandoActiva: 0
   tiempoEntreDisparos: 2
   tiempoEsperaDisparo: 0.3
   balaEnemigo: {fileID: 6385155836253510711, guid: a9798e21a4f3a9e4187a965235f9cd79, type: 3}

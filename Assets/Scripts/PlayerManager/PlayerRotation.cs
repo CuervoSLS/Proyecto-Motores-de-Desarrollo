@@ -1,8 +1,9 @@
-using Unity.Cinemachine;
 using UnityEngine;
 
 public class PlayerRotation : MonoBehaviour
 {
+    private const int IntentosMaximosCamara = 2;
+
     [Header("Rotacion")]
     [SerializeField] private float _rotateSpeed = 100f;
     [SerializeField] private Transform _camara;
@@ -27,6 +28,7 @@ public class PlayerRotation : MonoBehaviour
     private Cuerda _cuerda;
     private bool _enganchado;
     private bool _restaurando;
+    private int _intentosCamara;
 
     public void Init(PlayerMovement p)
     {
@@ -53,10 +55,18 @@ public class PlayerRotation : MonoBehaviour
 
         if (_p.Liana.EnLiana || _p.Dash.Dashing) return;
 
+        float dt = Time.deltaTime;
+
+        if (_p.Lanzamiento.Activo)
+        {
+            AlinearConCamara(dt);
+            return;
+        }
+
         Vector2 move = _p.Move;
         if (move.sqrMagnitude < 0.01f) return;
 
-        float rotation = (_p.Rotate + _p.Look.x) * _rotateSpeed * Time.deltaTime;
+        float rotation = (_p.Rotate + _p.Look.x) * _rotateSpeed * dt;
         if (rotation != 0f)
         {
             transform.Rotate(0f, rotation, 0f);
@@ -65,11 +75,21 @@ public class PlayerRotation : MonoBehaviour
         if (!_alinearConCamara || _p.WallRun.WallRunning || _p.Slide.Sliding) return;
         if (!MoviendoseSoloAdelanteAtras(move)) return;
 
-        if (_camara == null) ResolverCamara();
-        if (_camara == null) return;
+        AlinearConCamara(dt);
+    }
+
+    private void AlinearConCamara(float dt)
+    {
+        if (_camara == null)
+        {
+            if (_intentosCamara >= IntentosMaximosCamara) return;
+
+            ResolverCamara();
+            if (_camara == null) return;
+        }
 
         float diferencia = Mathf.DeltaAngle(transform.eulerAngles.y, _camara.eulerAngles.y);
-        float maxPaso = _velocidadAlinearCamara * Time.deltaTime;
+        float maxPaso = _velocidadAlinearCamara * dt;
         transform.Rotate(0f, Mathf.Clamp(diferencia, -maxPaso, maxPaso), 0f);
     }
 
@@ -146,6 +166,8 @@ public class PlayerRotation : MonoBehaviour
 
     private void ResolverCamara()
     {
+        _intentosCamara++;
+
         Transform candidata = _camara;
         if (candidata == null && Camera.main != null) candidata = Camera.main.transform;
 

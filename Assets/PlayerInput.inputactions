@@ -26,9 +26,9 @@
                 },
                 {
                     "name": "Look",
-                    "type": "Value",
+                    "type": "Button",
                     "id": "f071383f-9e4b-4398-b4ef-53aa68bf358d",
-                    "expectedControlType": "Vector2",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
@@ -55,6 +55,24 @@
                     "name": "Dash",
                     "type": "Button",
                     "id": "09509d49-48ba-46d6-b07b-9e691fa508e0",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "AgarrarGancho",
+                    "type": "Button",
+                    "id": "92bf6847-edc8-4c79-ab6a-8857d75d9f21",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "LanzarGancho",
+                    "type": "Button",
+                    "id": "411ea6d2-f09e-44e6-931b-0faf295521c4",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -169,6 +187,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "Dash",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "5a70d227-8bb5-4876-b0cc-18c78dead691",
+                    "path": "<Keyboard>/t",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "AgarrarGancho",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "968efcc5-e862-4507-b3ee-dcc513a44aeb",
+                    "path": "<Keyboard>/tab",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "LanzarGancho",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
