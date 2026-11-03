@@ -21,9 +21,25 @@ public class LayeredMusic : MonoBehaviour
     private AudioSource layerSnare;
     private AudioSource layerBass;
 
-    public LayeredMusic()
+    private void Awake()
     {
+        // Si ya existe otra instancia (por ejemplo al volver a la primera escena), esta se destruye
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         Instance = this;
+
+        // DontDestroyOnLoad solo funciona en objetos raíz (sin padre)
+        transform.SetParent(null);
+        DontDestroyOnLoad(gameObject);
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
     }
 
     private AudioSource CreateSource(AudioClip clip)
@@ -40,7 +56,10 @@ public class LayeredMusic : MonoBehaviour
 
     private void OnEnable()
     {
-        if(kick == null || shaker == null || perc == null || snare == null || bass == null)
+        // El duplicado todavía recibe OnEnable antes de destruirse, así que lo frenamos acá
+        if (Instance != this) return;
+
+        if (kick == null || shaker == null || perc == null || snare == null || bass == null)
         {
             Debug.LogWarning("AudioClip missing!", this);
             return;

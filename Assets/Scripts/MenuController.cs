@@ -19,7 +19,10 @@ public class MenuController : MonoBehaviour
         string levelName = "Nivel " + levelId;
         SceneManager.LoadScene(levelName);
     }
-
+    public void Start()
+    {
+        Check();
+    }
     // Check para activar el botón "On" u "Off"
     public void Check()
     {

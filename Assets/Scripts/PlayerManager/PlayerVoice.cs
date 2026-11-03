@@ -1,6 +1,5 @@
 using UnityEngine;
 
-[RequireComponent(typeof(PlayerMovement))]
 public class PlayerVoice : MonoBehaviour
 {
     [Header("Fuente de audio de la voz")]
