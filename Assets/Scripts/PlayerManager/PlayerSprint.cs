@@ -3,13 +3,12 @@ using UnityEngine.InputSystem;
 
 public class PlayerSprint : MonoBehaviour
 {
-    [Header("Sprint (doble toque de la W)")]
-    [SerializeField] private float _doubleTapWindow = 0.3f;
+    [Header("Sprint (mantener Shift)")]
     [SerializeField] private bool _bloquearSprintEnAire = true;
     [SerializeField] private float _deceleracionAire = 4f;
 
     private PlayerMovement _p;
-    private float _lastWTapTime = -10f;
+    private bool _teclaPresionada;
 
     public bool Sprinting { get; set; }
     public bool BloquearEnAire => _bloquearSprintEnAire;
@@ -20,28 +19,29 @@ public class PlayerSprint : MonoBehaviour
         _p = p;
     }
 
+    public void OnSprint(InputAction.CallbackContext context)
+    {
+        if (context.started || context.performed) _teclaPresionada = true;
+        else if (context.canceled) _teclaPresionada = false;
+    }
+
     public void Detectar()
     {
-        Keyboard kb = Keyboard.current;
-        if (kb != null && kb[Key.W].wasPressedThisFrame)
-        {
-            if (Time.time - _lastWTapTime <= _doubleTapWindow)
-            {
-                _lastWTapTime = -10f;
-                if (!_p.Liana.EnLiana && !_p.Slide.Sliding && (!_bloquearSprintEnAire || _p.Ground.Grounded))
-                {
-                    Sprinting = true;
-                }
-            }
-            else
-            {
-                _lastWTapTime = Time.time;
-            }
-        }
-
-        if (Sprinting && _p.Move.y <= 0.1f)
+        if (!_teclaPresionada || _p.Liana.EnLiana)
         {
             Sprinting = false;
+            return;
+        }
+
+        if (Sprinting)
+        {
+            if (_p.Move.y <= 0.1f) Sprinting = false;
+            return;
+        }
+
+        if (_p.Move.y > 0.1f && !_p.Slide.Sliding && (!_bloquearSprintEnAire || _p.Ground.Grounded))
+        {
+            Sprinting = true;
         }
     }
 }

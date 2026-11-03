@@ -40,7 +40,8 @@ public class PlayerLanzamiento : MonoBehaviour
             && !_p.Dash.Dashing
             && !_p.Slide.Sliding
             && !_p.WallRun.WallRunning
-            && (!_requiereGanchoEnMano || GanchoEnMano());
+            && !_p.AccionBloqueada
+            && (!_requiereGanchoEnMano || TieneGancho());
 
         _activo = activo;
 
@@ -56,11 +57,8 @@ public class PlayerLanzamiento : MonoBehaviour
         _camaraHasta = Time.time + _delayVolverCamara;
     }
 
-    private bool GanchoEnMano()
+    private bool TieneGancho()
     {
-        if (_agarrar == null) return false;
-
-        GanchoConCuerda gancho = _agarrar.Sostenido;
-        return gancho != null && gancho.Agarrado;
+        return _agarrar != null && _agarrar.TieneGancho;
     }
 }

@@ -35,15 +35,24 @@ public class PlayerAnimation : MonoBehaviour
     [SerializeField] private string _estadoLanzarDer = "L_CaminarDerecha";
     [SerializeField] private string _estadoLanzarCorrer = "L_CorrerAdelante";
 
+    [Header("Acciones de una sola vez")]
+    [SerializeField] private float _duracionMaximaAccion = 4f;
+
     private PlayerMovement _p;
     private bool _enAire;
     private string _estadoAnimActual = "";
     private PlayerVoice _respiracion;
     private string _estadoAccion = "";
     private bool _accionCancelable = true;
+    private float _accionInicio;
 
     public string EstadoDashFinal => _estadoDashFinal;
     public bool EnAccion => _estadoAccion.Length > 0;
+
+    public void CancelarAccion()
+    {
+        _estadoAccion = "";
+    }
 
     public void ReproducirUnaVez(string estado, bool cancelarAlMoverse = true)
     {
@@ -51,6 +60,7 @@ public class PlayerAnimation : MonoBehaviour
 
         _estadoAccion = estado;
         _accionCancelable = cancelarAlMoverse;
+        _accionInicio = Time.time;
         _estadoAnimActual = "";
     }
 
@@ -95,7 +105,7 @@ public class PlayerAnimation : MonoBehaviour
 
         bool enDashFinal = _p.Dash.EnDashFinal;
 
-        if (_estadoAccion.Length > 0 && (agarrado || wallRun || dashing || (_accionCancelable && move.sqrMagnitude > 0.01f)))
+        if (_estadoAccion.Length > 0 && (agarrado || wallRun || dashing || (_accionCancelable && move.sqrMagnitude > 0.01f) || Time.time - _accionInicio > _duracionMaximaAccion))
         {
             _estadoAccion = "";
         }
