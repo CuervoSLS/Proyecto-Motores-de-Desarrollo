@@ -3,44 +3,49 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using UnityEngine.UIElements;
 
 public class MenuController : MonoBehaviour
 {
-    //Referencias
+    /// Referencias de los botones
     [SerializeField] private GameObject rainOff;
     [SerializeField] private GameObject rainOn;
 
-    //El nombre de un nivel siempre debera de estar escrito como: "Nivel ". De lo contrario No coincidira!
+    /// Referencia al script de clima (el que tiene ActualizarClima)
+    [SerializeField] private Rain rainClima;
+
+    // El nombre de un nivel siempre deberá estar escrito como: "Nivel ". De lo contrario no coincidirá!
     public void OpenLevel(int levelId)
     {
         string levelName = "Nivel " + levelId;
         SceneManager.LoadScene(levelName);
     }
 
-    //Check para activar el Boton "On" u "Off"
+    // Check para activar el botón "On" u "Off"
     public void Check()
     {
-        if (PlayerPrefs.GetInt("rain") == 1)
-        {
-            rainOff.SetActive(false);
-            rainOn.SetActive(true);
-        }
-        else
-        {
-            rainOff.SetActive(true);
-            rainOn.SetActive(false);
-        }
+        bool llueve = PlayerPrefs.GetInt("rain") == 1;
+
+        rainOff.SetActive(!llueve);
+        rainOn.SetActive(llueve);
     }
 
-    //Activacion y Desactivacion de la opcion "Rain", usando "PlayerPrefs"
+    // Activación y desactivación de la opción "Rain", usando "PlayerPrefs"
     public void ActivateRain()
     {
-        PlayerPrefs.SetInt("rain", 1);
+        CambiarRain(1);
     }
 
     public void DeactivateRain()
     {
-        PlayerPrefs.SetInt("rain", 0);
+        CambiarRain(0);
+    }
+
+    /// Guarda el valor y actualiza el clima al instante
+    private void CambiarRain(int valor)
+    {
+        PlayerPrefs.SetInt("rain", valor);
+
+        // Llama al clima para que se refresque con el nuevo valor
+        if (rainClima != null) rainClima.ActualizarClima();
     }
 }
