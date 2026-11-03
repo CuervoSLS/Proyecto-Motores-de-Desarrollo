@@ -20,6 +20,7 @@ public class PlayerMovement : MonoBehaviour
     public Vector2 Look => _look;
     public float Rotate => _rotate;
     public bool InputBloqueado { get => _inputBloqueado; set => _inputBloqueado = value; }
+    public bool AccionBloqueada { get; set; }
     public float VerticalVelocity { get; set; }
 
     public PlayerGround Ground { get; private set; }
@@ -75,7 +76,7 @@ public class PlayerMovement : MonoBehaviour
             _inputBloqueado = false;
         }
 
-        _inputUtil = _inputBloqueado ? Vector2.zero : _input;
+        _inputUtil = _inputBloqueado || AccionBloqueada ? Vector2.zero : _input;
         _move = Liana.EnLiana ? new Vector2(0f, _inputUtil.y) : _inputUtil;
 
         float distanciaSuelo = Ground.Actualizar();
@@ -126,13 +127,20 @@ public class PlayerMovement : MonoBehaviour
         _rotate = context.ReadValue<float>();
     }
 
+    public void OnSprint(InputAction.CallbackContext context)
+    {
+        Sprint.OnSprint(context);
+    }
+
     public void OnSlide(InputAction.CallbackContext context)
     {
+        if (AccionBloqueada) return;
         Slide.OnSlide(context);
     }
 
     public void OnDash(InputAction.CallbackContext context)
     {
+        if (AccionBloqueada) return;
         Dash.OnDash(context);
     }
 
@@ -143,6 +151,7 @@ public class PlayerMovement : MonoBehaviour
 
     public void OnJump(InputAction.CallbackContext context)
     {
+        if (AccionBloqueada) return;
         Jump.OnJump(context);
     }
 

@@ -9,6 +9,7 @@ public class PlayerDash : MonoBehaviour
     [SerializeField] private float _dashDistance = 4f;
     [SerializeField] private float _dashDuration = 0.25f;
     [SerializeField] private float _dashCooldown = 1.5f;
+    [SerializeField] private bool _requiereCorrer = true;
     [SerializeField] private float _deceleracionImpulsoAire = 25f;
     [SerializeField] private float _impulsoAireResidual = 4f;
     [SerializeField] private TrailRenderer[] _trails;
@@ -151,13 +152,12 @@ public class PlayerDash : MonoBehaviour
     {
         if (Dashing || _dashCooldownTimer > 0f) return false;
         if (_p.Liana.EnLiana || _p.Slide.Sliding || _p.WallRun.WallRunning || _p.Rope.EnCuerda) return false;
-        if (!_p.Sprint.Sprinting) return false;
+        if (_requiereCorrer && !_p.Sprint.Sprinting) return false;
         return _p.Move.y > 0.1f && Mathf.Abs(_p.Move.x) < 0.1f;
     }
 
     private void Terminar()
     {
-        // Evita terminar dos veces en el mismo frame (Tick + Mover).
         if (!Dashing) return;
 
         Dashing = false;
@@ -174,7 +174,6 @@ public class PlayerDash : MonoBehaviour
     {
         if (_cooldownSlider == null) return;
 
-        // Mientras dashea baja a 0; luego sube de 0 a 1 en exactamente el tiempo del cooldown.
         float objetivo;
         if (Dashing)
         {
