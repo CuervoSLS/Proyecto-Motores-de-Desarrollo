@@ -4078,9 +4078,37 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 732076314}
     m_Modifications:
+    - target: {fileID: 934176477110984636, guid: de4ab14eee8960a46bcde8a31b866716, type: 3}
+      propertyPath: m_lineSpacing
+      value: 25
+      objectReference: {fileID: 0}
+    - target: {fileID: 934176477110984636, guid: de4ab14eee8960a46bcde8a31b866716, type: 3}
+      propertyPath: m_wordSpacing
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 934176477110984636, guid: de4ab14eee8960a46bcde8a31b866716, type: 3}
+      propertyPath: m_characterSpacing
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 934176477110984636, guid: de4ab14eee8960a46bcde8a31b866716, type: 3}
+      propertyPath: m_characterHorizontalScale
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2430623218091213470, guid: de4ab14eee8960a46bcde8a31b866716, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 3580234998247624635, guid: de4ab14eee8960a46bcde8a31b866716, type: 3}
+      propertyPath: m_lineSpacing
+      value: 25
+      objectReference: {fileID: 0}
     - target: {fileID: 4040430560388535065, guid: de4ab14eee8960a46bcde8a31b866716, type: 3}
       propertyPath: m_Name
       value: ControlsPanel
+      objectReference: {fileID: 0}
+    - target: {fileID: 4040430560388535065, guid: de4ab14eee8960a46bcde8a31b866716, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4182560444379378936, guid: de4ab14eee8960a46bcde8a31b866716, type: 3}
       propertyPath: m_Pivot.x
