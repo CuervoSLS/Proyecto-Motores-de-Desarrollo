@@ -89,6 +89,7 @@ public class Cuerda : MonoBehaviour
     private CharacterController _controlador;
     private bool _ganchoActivo;
     private bool _iniciada;
+    private FundidoAparicion _fundido;
     private bool _manoPendiente;
     private bool _sostenida;
     private bool _ignorandoJugador;
@@ -135,13 +136,7 @@ public class Cuerda : MonoBehaviour
         _inicioBloque = new Vector3[nodos];
         _pinBloque = new Vector3[nodos];
 
-        Vector3 origen = Anclaje;
-        Vector3 direccion = DireccionLocal();
-        for (int i = 0; i < nodos; i++)
-        {
-            _pos[i] = origen + direccion * (_largoSegmento * i);
-            _prev[i] = _pos[i];
-        }
+        ColocarInicial();
 
         _cos = new float[_lados + 1];
         _sin = new float[_lados + 1];
@@ -157,6 +152,45 @@ public class Cuerda : MonoBehaviour
 
         ActualizarMalla();
         if (_usarColision) ActualizarColliders();
+    }
+
+    private void ColocarInicial()
+    {
+        Vector3 origen = Anclaje;
+        Vector3 direccion = DireccionLocal();
+        for (int i = 0; i < _pos.Length; i++)
+        {
+            _pos[i] = origen + direccion * (_largoSegmento * i);
+            _prev[i] = _pos[i];
+        }
+    }
+
+    public void Reiniciar(float duracionAparicion)
+    {
+        if (_indiceAgarre >= 0) return;
+
+        if (_sostenida)
+        {
+            _sostenida = false;
+            if (_controlador != null) IgnorarColision(_controlador, false);
+            _ignorandoJugador = false;
+        }
+
+        _manoPendiente = false;
+        _zonaPre = 0;
+        _largoPreBloque = _largoSegmento;
+        _dtAnterior = 0f;
+        _framesQuieta = 0;
+        _dormida = false;
+
+        ColocarInicial();
+        ActualizarMalla();
+        if (_usarColision) ActualizarColliders();
+
+        if (duracionAparicion <= 0f) return;
+
+        if (_fundido == null && !TryGetComponent(out _fundido)) _fundido = gameObject.AddComponent<FundidoAparicion>();
+        _fundido.Iniciar(duracionAparicion);
     }
 
     private Vector3 DireccionLocal()

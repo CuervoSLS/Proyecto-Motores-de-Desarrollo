@@ -198,14 +198,10 @@ public class PlayerAnimation : MonoBehaviour
     {
         if (move.sqrMagnitude < 0.01f) return _estadoLanzarQuieto;
 
-        if (Mathf.Abs(move.x) > Mathf.Abs(move.y))
-        {
-            return move.x < 0f ? _estadoLanzarIzq : _estadoLanzarDer;
-        }
+        if (move.y > 0.1f) return _p.Sprint.Sprinting ? _estadoLanzarCorrer : _estadoLanzarAdelante;
+        if (move.y < -0.1f) return _estadoLanzarAtras;
 
-        if (move.y > 0f) return _p.Sprint.Sprinting ? _estadoLanzarCorrer : _estadoLanzarAdelante;
-
-        return _estadoLanzarAtras;
+        return move.x < 0f ? _estadoLanzarIzq : _estadoLanzarDer;
     }
 
     private string EstadoLocomocion(Vector2 move, bool sliding)
