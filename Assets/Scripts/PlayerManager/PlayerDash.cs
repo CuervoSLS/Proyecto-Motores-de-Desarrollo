@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using TMPro;
 
 public class PlayerDash : MonoBehaviour
 {
@@ -13,6 +14,12 @@ public class PlayerDash : MonoBehaviour
     [SerializeField] private float _deceleracionImpulsoAire = 25f;
     [SerializeField] private float _impulsoAireResidual = 4f;
     [SerializeField] private TrailRenderer[] _trails;
+
+    [Header("Cargas de dash")]
+    [SerializeField] private int _dashesIniciales = 0;
+    [SerializeField] private int _dashesMaximos = 9;
+    [SerializeField] private TMP_Text _textoDashes;
+    [SerializeField] private string _formatoTexto = "Dash: {0}";
 
     [Header("UI Cooldown")]
     [SerializeField] private Slider _cooldownSlider;
@@ -30,6 +37,7 @@ public class PlayerDash : MonoBehaviour
     private float _dashRecorrido;
     private bool _trailsEmitiendo;
 
+    public int Dashes { get; private set; }
     public bool Dashing { get; private set; }
     public bool EnDashFinal { get; set; }
     public bool DashEnAire { get; private set; }
@@ -42,12 +50,16 @@ public class PlayerDash : MonoBehaviour
         _trailsEmitiendo = true;
         SetTrailsEmitting(false);
 
+        _dashesMaximos = Mathf.Max(1, _dashesMaximos);
+        Dashes = Mathf.Clamp(_dashesIniciales, 0, _dashesMaximos);
+        ActualizarTexto();
+
         if (_cooldownSlider != null)
         {
             _cooldownSlider.minValue = 0f;
             _cooldownSlider.maxValue = 1f;
             _cooldownSlider.interactable = false;
-            _cooldownSlider.SetValueWithoutNotify(1f);
+            _cooldownSlider.SetValueWithoutNotify(Dashes > 0 ? 1f : 0f);
         }
     }
 
@@ -58,6 +70,20 @@ public class PlayerDash : MonoBehaviour
         Dashing = false;
         Inercia = Vector3.zero;
         SetTrailsEmitting(false);
+    }
+
+    public bool AgregarDashes(int cantidad)
+    {
+        if (cantidad <= 0 || Dashes >= _dashesMaximos) return false;
+
+        Dashes = Mathf.Min(_dashesMaximos, Dashes + cantidad);
+        ActualizarTexto();
+        return true;
+    }
+
+    private void ActualizarTexto()
+    {
+        if (_textoDashes != null) _textoDashes.SetText(_formatoTexto, Dashes);
     }
 
     public void LimpiarInercia()
@@ -139,6 +165,9 @@ public class PlayerDash : MonoBehaviour
     {
         if (!context.performed || !PuedeHacerDash()) return;
 
+        Dashes--;
+        ActualizarTexto();
+
         Dashing = true;
         DashEnAire = !_p.Ground.Grounded;
         EnDashFinal = false;
@@ -150,7 +179,7 @@ public class PlayerDash : MonoBehaviour
 
     private bool PuedeHacerDash()
     {
-        if (Dashing || _dashCooldownTimer > 0f) return false;
+        if (Dashes <= 0 || Dashing || _dashCooldownTimer > 0f) return false;
         if (_p.Liana.EnLiana || _p.Slide.Sliding || _p.WallRun.WallRunning || _p.Rope.EnCuerda) return false;
         if (_requiereCorrer && !_p.Sprint.Sprinting) return false;
         return _p.Move.y > 0.1f && Mathf.Abs(_p.Move.x) < 0.1f;
@@ -175,7 +204,7 @@ public class PlayerDash : MonoBehaviour
         if (_cooldownSlider == null) return;
 
         float objetivo;
-        if (Dashing)
+        if (Dashing || Dashes <= 0)
         {
             objetivo = 0f;
         }
