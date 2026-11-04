@@ -11,9 +11,11 @@ public class VolumeController : MonoBehaviour
     [SerializeField] private Slider ambSlider;
     [SerializeField] private Slider vozSlider;
 
-    //Rango del mixer para SFX (en dB)
+    //Rango del mixer para SFX y Music (en dB)
     private const float SFX_MIN_DB = -80f;
     private const float SFX_MAX_DB = 10f;
+    private const float MUSIC_MIN_DB = -80f;
+    private const float MUSIC_MAX_DB = 10f;
 
     //Check para las "PlayerPrefs"
     private void Start()
@@ -35,7 +37,12 @@ public class VolumeController : MonoBehaviour
     public void SetMusicVolume()
     {
         float music = musicSlider.value;
-        myMixer.SetFloat("music", Mathf.Log10(music) * 20);
+
+        // Slider (min a max) -> de -80 dB a +10 dB
+        float t = Mathf.InverseLerp(musicSlider.minValue, musicSlider.maxValue, music);
+        float musicDb = Mathf.Lerp(MUSIC_MIN_DB, MUSIC_MAX_DB, t);
+
+        myMixer.SetFloat("music", musicDb);
         PlayerPrefs.SetFloat("musicVolume", music);
     }
 

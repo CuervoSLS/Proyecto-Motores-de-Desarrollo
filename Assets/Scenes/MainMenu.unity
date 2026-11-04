@@ -1686,6 +1686,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Rain
   psRain: {fileID: 1749132520}
   rain: {fileID: 351348027}
+  sonidosRain:
+  - {fileID: 8300000, guid: f10e9483952c29942b40f217f916d4ba, type: 3}
+  - {fileID: 8300000, guid: 7ee33cd3d7437484d9c386fb0760a378, type: 3}
+  - {fileID: 8300000, guid: ddaf339cd3090bf449cf443c1bee6d99, type: 3}
+  - {fileID: 8300000, guid: 5cbac1f105653924f96b57d50f310d7e, type: 3}
   ambienteNormal: {fileID: 1063781456}
   skyboxLluvia: {fileID: 2100000, guid: 2039a0ad0a9d05549928b70362f54902, type: 2}
   skyboxNormal: {fileID: 2100000, guid: 3e5399bd195de7649b874f58c1b9f8a3, type: 2}
@@ -2151,7 +2156,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 30764fbe8b92cab489214bfb4044b7b6, type: 2}
+  - {fileID: 2100000, guid: f54c5887d3de22246a8235e3ac5d5605, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -4246,6 +4251,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2503286031855783437, guid: 192cffa77f5f1c24b8b59a9634f00ea6, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[3].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2503286031855783437, guid: 192cffa77f5f1c24b8b59a9634f00ea6, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Target
       value: 
       objectReference: {fileID: 1667106679}
@@ -4257,6 +4266,22 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[3].m_Target
       value: 
       objectReference: {fileID: 173521823}
+    - target: {fileID: 2503286031855783437, guid: 192cffa77f5f1c24b8b59a9634f00ea6, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[2].m_MethodName
+      value: DesactivarBlur
+      objectReference: {fileID: 0}
+    - target: {fileID: 2503286031855783437, guid: 192cffa77f5f1c24b8b59a9634f00ea6, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[3].m_MethodName
+      value: ReproducirSonido
+      objectReference: {fileID: 0}
+    - target: {fileID: 2503286031855783437, guid: 192cffa77f5f1c24b8b59a9634f00ea6, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[2].m_TargetAssemblyTypeName
+      value: BlurTransition, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 2503286031855783437, guid: 192cffa77f5f1c24b8b59a9634f00ea6, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[3].m_TargetAssemblyTypeName
+      value: SonidoBotones, Assembly-CSharp
+      objectReference: {fileID: 0}
     - target: {fileID: 2760088515394735895, guid: 192cffa77f5f1c24b8b59a9634f00ea6, type: 3}
       propertyPath: m_AnchorMax.x
       value: 1

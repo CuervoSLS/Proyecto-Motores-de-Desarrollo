@@ -5,6 +5,7 @@ public class Rain : MonoBehaviour
     /// Referencias de la lluvia
     [SerializeField] private GameObject psRain;
     [SerializeField] private AudioSource rain;            // Ambiente de lluvia
+    [SerializeField] private AudioClip[] sonidosRain;     // Sonidos posibles de la lluvia
 
     /// Referencias del ambiente normal
     [SerializeField] private AudioSource ambienteNormal;  // Ambiente común (cuando NO llueve)
@@ -16,6 +17,9 @@ public class Rain : MonoBehaviour
 
     // Guarda la intensidad original de la luz para poder restaurarla
     private float intensidadNormal;
+
+    // Índice del último sonido de lluvia reproducido (-1 = ninguno todavía)
+    private int ultimoSonidoRain = -1;
 
     void Start()
     {
@@ -60,7 +64,33 @@ public class Rain : MonoBehaviour
     {
         if (audio == null) return;
 
-        if (reproducir && !audio.isPlaying) audio.Play();
+        if (reproducir && !audio.isPlaying)
+        {
+            // Si es el audio de la lluvia, se elige un sonido nuevo antes de reproducir
+            if (audio == rain) ElegirSonidoRain();
+            audio.Play();
+        }
         else if (!reproducir && audio.isPlaying) audio.Stop();
+    }
+
+    /// Asigna al AudioSource de la lluvia un clip al azar, distinto del anterior
+    private void ElegirSonidoRain()
+    {
+        if (sonidosRain == null || sonidosRain.Length == 0) return;
+
+        int nuevo = 0;
+
+        if (sonidosRain.Length > 1)
+        {
+            // Se repite el sorteo hasta que salga uno distinto al último
+            do
+            {
+                nuevo = Random.Range(0, sonidosRain.Length);
+            }
+            while (nuevo == ultimoSonidoRain);
+        }
+
+        ultimoSonidoRain = nuevo;
+        rain.clip = sonidosRain[nuevo];
     }
 }
