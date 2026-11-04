@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(Collider))]
@@ -19,6 +20,11 @@ public class GanchoConCuerda : MonoBehaviour
     [SerializeField] private LayerMask _capasPegar = ~0;
     [SerializeField] private float _tiempoMaximoVuelo = 6f;
 
+    [Header("Reinicio al tocar otras capas")]
+    [SerializeField] private LayerMask _capasSinReinicio;
+    [SerializeField] private float _delayReinicio = 3f;
+    [SerializeField] private float _duracionAparicion = 2f;
+
     private Transform _padre;
     private float _tiempoRestante;
     private AgarrarGancho _jugador;
@@ -26,6 +32,13 @@ public class GanchoConCuerda : MonoBehaviour
     private float _tiempoVuelo;
     private Rigidbody _rb;
     private bool _cuerpoEraTrigger;
+    private bool _reiniciando;
+    private Transform _padreInicial;
+    private Vector3 _posLocalInicial;
+    private Quaternion _rotLocalInicial;
+    private Vector3 _escalaLocalInicial;
+    private Vector3 _escalaMundoInicial;
+    private FundidoAparicion _fundido;
 
     public bool Agarrado { get; private set; }
     public bool Volando => _volando;
@@ -47,6 +60,13 @@ public class GanchoConCuerda : MonoBehaviour
         _rb = GetComponent<Rigidbody>();
         _rb.isKinematic = true;
         _rb.useGravity = false;
+
+        _padreInicial = transform.parent;
+        _posLocalInicial = transform.localPosition;
+        _rotLocalInicial = transform.localRotation;
+        _escalaLocalInicial = transform.localScale;
+        _escalaMundoInicial = transform.lossyScale;
+        if (!TryGetComponent(out _fundido)) _fundido = gameObject.AddComponent<FundidoAparicion>();
 
         enabled = false;
     }
@@ -89,7 +109,7 @@ public class GanchoConCuerda : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (Agarrado) return;
+        if (Agarrado || _reiniciando) return;
 
         AgarrarGancho jugador = other.GetComponentInParent<AgarrarGancho>();
         if (jugador == null) return;
@@ -116,7 +136,7 @@ public class GanchoConCuerda : MonoBehaviour
 
     public void Agarrar(Transform padre, float delay)
     {
-        if (Agarrado || padre == null) return;
+        if (Agarrado || padre == null || _reiniciando) return;
 
         Agarrado = true;
         _volando = false;
@@ -143,6 +163,7 @@ public class GanchoConCuerda : MonoBehaviour
         enabled = false;
         _padre = null;
         transform.SetParent(null, true);
+        transform.localScale = _escalaMundoInicial;
         Agarrado = false;
 
         if (_cuerda == null) return;
@@ -197,6 +218,12 @@ public class GanchoConCuerda : MonoBehaviour
         transform.SetParent(padre, false);
         transform.localPosition = posicionEnMano;
         transform.localRotation = Quaternion.Euler(rotacionEnMano);
+
+        Vector3 escalaPadre = padre.lossyScale;
+        transform.localScale = new Vector3(
+            escalaPadre.x != 0f ? _escalaMundoInicial.x / escalaPadre.x : _escalaMundoInicial.x,
+            escalaPadre.y != 0f ? _escalaMundoInicial.y / escalaPadre.y : _escalaMundoInicial.y,
+            escalaPadre.z != 0f ? _escalaMundoInicial.z / escalaPadre.z : _escalaMundoInicial.z);
     }
 
     private void Update()
@@ -204,7 +231,12 @@ public class GanchoConCuerda : MonoBehaviour
         if (_volando)
         {
             _tiempoVuelo += Time.deltaTime;
-            if (_tiempoVuelo >= _tiempoMaximoVuelo || (_tiempoVuelo > TiempoMinimoReposo && _rb.IsSleeping())) Detener();
+            if (_tiempoVuelo >= _tiempoMaximoVuelo || (_tiempoVuelo > TiempoMinimoReposo && _rb.IsSleeping()))
+            {
+                Detener();
+                IniciarReinicio();
+            }
+
             return;
         }
 
@@ -221,11 +253,54 @@ public class GanchoConCuerda : MonoBehaviour
         if (!_volando) return;
         if (colision.GetContact(0).thisCollider != _colliderCuerpo) return;
 
-        if ((_capasPegar.value & (1 << colision.gameObject.layer)) == 0) return;
+        int mascara = 1 << colision.gameObject.layer;
 
-        Pegado = true;
+        if ((_capasPegar.value & mascara) != 0)
+        {
+            Pegado = true;
+            Detener();
+            transform.SetParent(colision.transform, true);
+            return;
+        }
+
+        if ((_capasSinReinicio.value & mascara) != 0) return;
+
         Detener();
-        transform.SetParent(colision.transform, true);
+        IniciarReinicio();
+    }
+
+    private void IniciarReinicio()
+    {
+        if (_reiniciando) return;
+
+        _reiniciando = true;
+        if (_jugador != null && _jugador.Cercano == this) _jugador.Cercano = null;
+        _jugador = null;
+
+        StartCoroutine(ReiniciarTrasDelay());
+    }
+
+    private IEnumerator ReiniciarTrasDelay()
+    {
+        if (_delayReinicio > 0f) yield return new WaitForSeconds(_delayReinicio);
+
+        while (_cuerda != null && _cuerda.Agarrada) yield return null;
+
+        transform.SetParent(_padreInicial, false);
+        transform.localPosition = _posLocalInicial;
+        transform.localRotation = _rotLocalInicial;
+        transform.localScale = _escalaLocalInicial;
+        Pegado = false;
+
+        if (_cuerda != null)
+        {
+            _cuerda.Bloqueada = false;
+            _cuerda.Reiniciar(_duracionAparicion);
+        }
+
+        _fundido.Iniciar(_duracionAparicion);
+
+        _reiniciando = false;
     }
 
     private void Detener()

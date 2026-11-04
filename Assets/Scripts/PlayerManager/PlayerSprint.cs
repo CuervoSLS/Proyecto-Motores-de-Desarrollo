@@ -3,12 +3,12 @@ using UnityEngine.InputSystem;
 
 public class PlayerSprint : MonoBehaviour
 {
-    [Header("Sprint (mantener Shift)")]
+    [Header("Correr automatico (Shift para caminar)")]
     [SerializeField] private bool _bloquearSprintEnAire = true;
     [SerializeField] private float _deceleracionAire = 4f;
 
     private PlayerMovement _p;
-    private bool _teclaPresionada;
+    private bool _caminarPresionado;
 
     public bool Sprinting { get; set; }
     public bool BloquearEnAire => _bloquearSprintEnAire;
@@ -21,25 +21,21 @@ public class PlayerSprint : MonoBehaviour
 
     public void OnSprint(InputAction.CallbackContext context)
     {
-        if (context.started || context.performed) _teclaPresionada = true;
-        else if (context.canceled) _teclaPresionada = false;
+        if (context.started || context.performed) _caminarPresionado = true;
+        else if (context.canceled) _caminarPresionado = false;
     }
 
     public void Detectar()
     {
-        if (!_teclaPresionada || _p.Liana.EnLiana)
+        if (_caminarPresionado || _p.Liana.EnLiana || _p.Move.y <= 0.1f)
         {
             Sprinting = false;
             return;
         }
 
-        if (Sprinting)
-        {
-            if (_p.Move.y <= 0.1f) Sprinting = false;
-            return;
-        }
+        if (Sprinting) return;
 
-        if (_p.Move.y > 0.1f && !_p.Slide.Sliding && (!_bloquearSprintEnAire || _p.Ground.Grounded))
+        if (!_p.Slide.Sliding && (!_bloquearSprintEnAire || _p.Ground.Grounded))
         {
             Sprinting = true;
         }

@@ -76,12 +76,13 @@ public class PlayerMovement : MonoBehaviour
             _inputBloqueado = false;
         }
 
+        Lanzamiento.Actualizar();
+
         _inputUtil = _inputBloqueado || AccionBloqueada ? Vector2.zero : _input;
         _move = Liana.EnLiana ? new Vector2(0f, _inputUtil.y) : _inputUtil;
+        if (Lanzamiento.Activo && _move.y > 0.1f) _move.x = 0f;
 
         float distanciaSuelo = Ground.Actualizar();
-
-        Lanzamiento.Actualizar();
 
         Rope.LiberarIgnorada();
         if (!Rope.EnCuerda) Rope.Buscar();
