@@ -52673,6 +52673,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7512575360402513233, guid: e07a56d7e5dddb04c855564f7a2763ad, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2038615860}
+    - targetCorrespondingSourceObject: {fileID: 7512575360402513233, guid: e07a56d7e5dddb04c855564f7a2763ad, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2038615880}
   m_SourcePrefab: {fileID: 100100000, guid: e07a56d7e5dddb04c855564f7a2763ad, type: 3}
 --- !u!114 &999940775 stripped
 MonoBehaviour:
@@ -106534,6 +106537,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8230a68d0f78104e810f6e492968f67, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LayersController
+--- !u!114 &2038615880
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2038615816}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99c3dbbef9ba85a4f854ce98de81151e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlatformFallingSound
 --- !u!1 &2040849539
 GameObject:
   m_ObjectHideFlags: 0
