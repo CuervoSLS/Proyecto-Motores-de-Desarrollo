@@ -14,6 +14,9 @@ public class FallingPlatform : MonoBehaviour
     [SerializeField] float frecuenciaTemblorInicial = 6f;
     [SerializeField] float frecuenciaTemblorFinal = 25f;
 
+    [Header("Audio")]
+    [SerializeField] AudioSource audioTemblor;
+
     Renderer render;
     Material material;
     Color colorBase;
@@ -94,6 +97,11 @@ public class FallingPlatform : MonoBehaviour
 
     IEnumerator Temblar()
     {
+        if (audioTemblor != null)
+        {
+            audioTemblor.Play();
+        }
+
         float tiempo = 0f;
         float fase = 0f;
 

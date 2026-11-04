@@ -4,22 +4,23 @@ public class LayersController : MonoBehaviour
 {
     private void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.name == "Layer_1")
+        switch (other.gameObject.name)
         {
-            LayeredMusic.Instance.intensity = 0.5f;
-            Debug.Log("Entered Layer_1");
+            case "Layer_1":
+                Establecer(0.5f);
+                break;
+            case "Layer_2":
+                Establecer(0.75f);
+                break;
+            case "Layer_3":
+                Establecer(1f);
+                break;
         }
+    }
 
-        else if (other.gameObject.name == "Layer_2")
-        {
-            LayeredMusic.Instance.intensity = 0.75f;
-            Debug.Log("Entered Layer_2");
-        }
-
-        else if (other.gameObject.name == "Layer_3")
-        {
-            LayeredMusic.Instance.intensity = 1f;
-            Debug.Log("Entered Layer_3");
-        }
+    private void Establecer(float intensidad)
+    {
+        if (MusicaPorVida.Instance != null) MusicaPorVida.Instance.EstablecerIntensidadZona(intensidad);
+        else if (LayeredMusic.Instance != null) LayeredMusic.Instance.intensity = intensidad;
     }
 }

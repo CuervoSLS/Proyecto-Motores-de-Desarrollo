@@ -8,7 +8,8 @@ public class MenuPausa : MonoBehaviour
     [SerializeField] private PlayerInput playerInput;   // El PlayerInput con la action "Pausa"
     [SerializeField] private GameObject panelPausa;     // El panel/menú de pausa (hijo, NO el objeto de este script)
     [SerializeField] private BlurTransition blur;       // El script BlurTransition del Volume (se activa solo en pausa)
-    [SerializeField] private GameObject objetoBloqueo;  // Si está activo, NO se puede despausar hasta que se desactive
+    [SerializeField] private GameObject objetoBloqueo;
+    [SerializeField] private GameObject objetoBloqueo1; // Si está activo, NO se puede despausar hasta que se desactive
 
     [Header("Opciones")]
     [SerializeField] private bool controlarCursor = true;
@@ -51,6 +52,7 @@ public class MenuPausa : MonoBehaviour
     private bool DespausaBloqueada()
     {
         return objetoBloqueo != null && objetoBloqueo.activeInHierarchy;
+        return objetoBloqueo1 != null && objetoBloqueo.activeInHierarchy;
     }
 
     private void AplicarPausa(bool pausar)

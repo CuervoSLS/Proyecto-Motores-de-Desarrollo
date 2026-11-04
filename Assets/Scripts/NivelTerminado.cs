@@ -30,6 +30,10 @@ public class NivelTerminado : MonoBehaviour
     [Header("Animación")]
     public float duracionAnimacion = 2f;
 
+    [Header("Audio")]
+    [Tooltip("Se reproduce al tocar el trigger. Si se deja vacío, busca un AudioSource en este mismo objeto")]
+    public AudioSource audioFinal;
+
     private float tiempoTranscurrido = 0f;
     private bool nivelTerminado = false;
 
@@ -37,6 +41,8 @@ public class NivelTerminado : MonoBehaviour
     {
         // Por si venimos de una escena donde el tiempo quedó congelado
         Time.timeScale = 1f;
+
+        if (audioFinal == null) audioFinal = GetComponent<AudioSource>();
 
         if (panel != null)
         {
@@ -84,6 +90,9 @@ public class NivelTerminado : MonoBehaviour
         // Se sale del modo Look: el mouse se libera y se hace visible
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+
+        // Suena el audio al hacer trigger
+        if (audioFinal != null) audioFinal.Play();
 
         // Tiempo actual queda con el valor final
         if (textoTiempoActual != null)

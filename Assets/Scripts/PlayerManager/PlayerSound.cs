@@ -13,16 +13,39 @@ public class GrupoSonido
         return clips != null && clips.Length > 0;
     }
 
+    private int _ultimoMasUno;
+
     public AudioClip Elegir()
     {
         if (!TieneClips()) return null;
-        return clips[Random.Range(0, clips.Length)];
+
+        int cantidad = clips.Length;
+        if (cantidad == 1) return clips[0];
+
+        int indice;
+        if (_ultimoMasUno <= 0 || _ultimoMasUno > cantidad)
+        {
+            indice = Random.Range(0, cantidad);
+        }
+        else
+        {
+            indice = Random.Range(0, cantidad - 1);
+            if (indice >= _ultimoMasUno - 1) indice++;
+        }
+
+        _ultimoMasUno = indice + 1;
+        return clips[indice];
     }
 }
 
 [RequireComponent(typeof(PlayerMovement))]
 public class PlayerSound : MonoBehaviour
 {
+    private const int Tierra = 0;
+    private const int Cesped = 1;
+    private const int Roca = 2;
+    private const int Madera = 3;
+
     [Header("Fuentes de audio")]
     [SerializeField] private AudioSource _fuentePasos;
     [SerializeField] private AudioSource _fuenteEfectos;
@@ -37,7 +60,6 @@ public class PlayerSound : MonoBehaviour
     [SerializeField] private string _nombreLayerRoca = "PisoRoca";
     [SerializeField] private string _nombreLayerMadera = "PisoMadera";
     [SerializeField] private string _nombreLayerParedWallRun = "ParedWallRun";
-    [SerializeField] private bool _depurar = true;
 
     [Header("Pasos en tierra")]
     [SerializeField] private GrupoSonido _caminarTierra;
@@ -84,9 +106,13 @@ public class PlayerSound : MonoBehaviour
     [SerializeField] private float _distanciaPorSonido = 0.6f;
 
     private PlayerMovement _p;
+    private GrupoSonido[] _gruposCaminar;
+    private GrupoSonido[] _gruposCorrer;
+    private GrupoSonido[] _gruposSalto;
+    private GrupoSonido[] _gruposAterrizaje;
     private float _temporizadorPaso;
     private float _temporizadorWallRun;
-    private bool _enLianaAnterior;
+    private bool _siguiendoLiana;
     private bool _dashAnterior;
     private bool _enSueloAnterior;
     private float _tiempoEnAire;
@@ -97,7 +123,6 @@ public class PlayerSound : MonoBehaviour
     private int _capaRoca = -1;
     private int _capaMadera = -1;
     private int _capaParedWallRun = -1;
-    private string _ultimaClaveDebug = "";
 
     private void Start()
     {
@@ -115,14 +140,12 @@ public class PlayerSound : MonoBehaviour
         _capaMadera = LayerMask.NameToLayer(_nombreLayerMadera);
         _capaParedWallRun = LayerMask.NameToLayer(_nombreLayerParedWallRun);
 
-        if (_capaTierra < 0) Debug.LogWarning("PlayerSound: no existe el layer " + _nombreLayerTierra, this);
-        if (_capaCesped < 0) Debug.LogWarning("PlayerSound: no existe el layer " + _nombreLayerCesped, this);
-        if (_capaRoca < 0) Debug.LogWarning("PlayerSound: no existe el layer " + _nombreLayerRoca, this);
-        if (_capaMadera < 0) Debug.LogWarning("PlayerSound: no existe el layer " + _nombreLayerMadera, this);
-        if (_capaParedWallRun < 0) Debug.LogWarning("PlayerSound: no existe el layer " + _nombreLayerParedWallRun, this);
+        _gruposCaminar = new[] { _caminarTierra, _caminarCesped, _caminarRoca, _caminarMadera };
+        _gruposCorrer = new[] { _correrTierra, _correrCesped, _correrRoca, _correrMadera };
+        _gruposSalto = new[] { _saltarTierra, _saltarCesped, _saltarRoca, _saltarMadera };
+        _gruposAterrizaje = new[] { _aterrizarTierra, _aterrizarCesped, _aterrizarRoca, _aterrizarMadera };
 
         _p.Jump.Saltado += AlSaltar;
-        _ultimaAltura = transform.position.y;
     }
 
     private void OnDestroy()
@@ -134,20 +157,19 @@ public class PlayerSound : MonoBehaviour
     {
         if (_p == null) return;
 
+        bool enSuelo = _p.Ground.Grounded;
         bool enLiana = _p.Liana.EnLiana;
         bool enCuerda = _p.Rope.EnCuerda;
         bool dashing = _p.Dash.Dashing;
 
         DetectarDash(dashing);
         DetectarAlturaLiana(enLiana);
-        ActualizarPasos(enLiana, enCuerda, dashing);
+        ActualizarPasos(enSuelo, enLiana, enCuerda, dashing);
         ActualizarWallRun();
-        DetectarAterrizaje(_p.Ground.Grounded);
+        DetectarAterrizaje(enSuelo);
 
-        _enSueloAnterior = _p.Ground.Grounded;
-        _enLianaAnterior = enLiana;
+        _enSueloAnterior = enSuelo;
         _dashAnterior = dashing;
-        _ultimaAltura = transform.position.y;
     }
 
     private void DetectarDash(bool dashing)
@@ -160,13 +182,25 @@ public class PlayerSound : MonoBehaviour
 
     private void DetectarAlturaLiana(bool enLiana)
     {
-        if (!enLiana || !_enLianaAnterior)
+        if (!enLiana)
         {
+            _siguiendoLiana = false;
             _alturaAcumulada = 0f;
             return;
         }
 
-        _alturaAcumulada += transform.position.y - _ultimaAltura;
+        float altura = transform.position.y;
+
+        if (!_siguiendoLiana)
+        {
+            _siguiendoLiana = true;
+            _ultimaAltura = altura;
+            _alturaAcumulada = 0f;
+            return;
+        }
+
+        _alturaAcumulada += altura - _ultimaAltura;
+        _ultimaAltura = altura;
 
         if (_alturaAcumulada >= _distanciaPorSonido)
         {
@@ -179,12 +213,17 @@ public class PlayerSound : MonoBehaviour
         }
     }
 
-    private void ActualizarPasos(bool enLiana, bool enCuerda, bool dashing)
+    private void ActualizarPasos(bool enSuelo, bool enLiana, bool enCuerda, bool dashing)
     {
-        bool moviendo = _p.Move.sqrMagnitude > 0.01f;
-        bool enSuelo = _p.Ground.Grounded && !enLiana && !enCuerda && !dashing && !_p.Slide.Sliding && !_p.WallRun.WallRunning;
+        bool caminando = enSuelo
+            && _p.Move.sqrMagnitude > 0.01f
+            && !enLiana
+            && !enCuerda
+            && !dashing
+            && !_p.Slide.Sliding
+            && !_p.WallRun.WallRunning;
 
-        if (!moviendo || !enSuelo)
+        if (!caminando)
         {
             _temporizadorPaso = 0f;
             return;
@@ -196,11 +235,10 @@ public class PlayerSound : MonoBehaviour
         bool corriendo = _p.Sprint.Sprinting;
         _temporizadorPaso = corriendo ? _intervaloCorrer : _intervaloCaminar;
 
-        GrupoSonido grupo = ElegirPasos(corriendo);
-        if (grupo == null) return;
+        int superficie = IndiceSuperficie();
+        if (superficie < 0) return;
 
-        _fuentePasos.pitch = 1f + Random.Range(-_variacionPitchPasos, _variacionPitchPasos);
-        Reproducir(grupo, _fuentePasos);
+        ReproducirPaso(corriendo ? _gruposCorrer[superficie] : _gruposCaminar[superficie]);
     }
 
     private void ActualizarWallRun()
@@ -217,56 +255,9 @@ public class PlayerSound : MonoBehaviour
         _temporizadorWallRun = _intervaloWallRun;
 
         Collider pared = _p.WallRun.Pared;
-        int capa = pared != null ? pared.gameObject.layer : -1;
-        GrupoSonido grupo = capa >= 0 && capa == _capaParedWallRun ? _correrRoca : null;
+        if (pared == null || pared.gameObject.layer != _capaParedWallRun) return;
 
-        if (_depurar) Depurar("wallrun", capa, grupo);
-
-        if (grupo == null) return;
-
-        _fuentePasos.pitch = 1f + Random.Range(-_variacionPitchPasos, _variacionPitchPasos);
-        Reproducir(grupo, _fuentePasos);
-    }
-
-    private GrupoSonido ElegirPasos(bool corriendo)
-    {
-        int capa = CapaDelPiso();
-        GrupoSonido grupo = null;
-
-        if (capa >= 0)
-        {
-            if (capa == _capaTierra) grupo = corriendo ? _correrTierra : _caminarTierra;
-            else if (capa == _capaCesped) grupo = corriendo ? _correrCesped : _caminarCesped;
-            else if (capa == _capaRoca) grupo = corriendo ? _correrRoca : _caminarRoca;
-            else if (capa == _capaMadera) grupo = corriendo ? _correrMadera : _caminarMadera;
-        }
-
-        if (_depurar) Depurar("pasos", capa, grupo);
-
-        return grupo;
-    }
-
-    private int CapaDelPiso()
-    {
-        Collider suelo = _p.Ground.Suelo;
-        return suelo != null ? suelo.gameObject.layer : -1;
-    }
-
-    private void Depurar(string contexto, int capa, GrupoSonido grupo)
-    {
-        string nombreCapa = capa >= 0 ? LayerMask.LayerToName(capa) : "ninguno";
-        string estado;
-
-        if (capa < 0) estado = "no se detecto ningun collider";
-        else if (grupo == null) estado = "el layer no corresponde a ningun sonido";
-        else if (!grupo.TieneClips()) estado = "el grupo de sonido no tiene clips asignados";
-        else estado = "ok";
-
-        string clave = contexto + "|" + nombreCapa + "|" + estado;
-        if (clave == _ultimaClaveDebug) return;
-        _ultimaClaveDebug = clave;
-
-        Debug.Log("PlayerSound " + contexto + " -> layer: " + nombreCapa + " | " + estado, this);
+        ReproducirPaso(_correrRoca);
     }
 
     private void DetectarAterrizaje(bool enSuelo)
@@ -282,48 +273,37 @@ public class PlayerSound : MonoBehaviour
 
         if (!aterrizo) return;
 
-        int capa = CapaDelPiso();
-        GrupoSonido grupo = ElegirAterrizaje(capa);
-
-        if (_depurar) Depurar("aterrizaje", capa, grupo);
-
-        Reproducir(grupo, _fuenteEfectos);
-    }
-
-    private GrupoSonido ElegirAterrizaje(int capa)
-    {
-        if (capa < 0) return null;
-
-        if (capa == _capaTierra) return _aterrizarTierra;
-        if (capa == _capaCesped) return _aterrizarCesped;
-        if (capa == _capaRoca) return _aterrizarRoca;
-        if (capa == _capaMadera) return _aterrizarMadera;
-
-        return null;
+        int superficie = IndiceSuperficie();
+        if (superficie >= 0) Reproducir(_gruposAterrizaje[superficie], _fuenteEfectos);
     }
 
     private void AlSaltar()
     {
         if (!_p.Ground.Grounded) return;
 
-        int capa = CapaDelPiso();
-        GrupoSonido grupo = ElegirSalto(capa);
-
-        if (_depurar) Depurar("salto", capa, grupo);
-
-        Reproducir(grupo, _fuenteEfectos);
+        int superficie = IndiceSuperficie();
+        if (superficie >= 0) Reproducir(_gruposSalto[superficie], _fuenteEfectos);
     }
 
-    private GrupoSonido ElegirSalto(int capa)
+    private int IndiceSuperficie()
     {
-        if (capa < 0) return null;
+        Collider suelo = _p.Ground.Suelo;
+        if (suelo == null) return -1;
 
-        if (capa == _capaTierra) return _saltarTierra;
-        if (capa == _capaCesped) return _saltarCesped;
-        if (capa == _capaRoca) return _saltarRoca;
-        if (capa == _capaMadera) return _saltarMadera;
+        int capa = suelo.gameObject.layer;
 
-        return null;
+        if (capa == _capaTierra) return Tierra;
+        if (capa == _capaCesped) return Cesped;
+        if (capa == _capaRoca) return Roca;
+        if (capa == _capaMadera) return Madera;
+
+        return -1;
+    }
+
+    private void ReproducirPaso(GrupoSonido grupo)
+    {
+        _fuentePasos.pitch = 1f + Random.Range(-_variacionPitchPasos, _variacionPitchPasos);
+        Reproducir(grupo, _fuentePasos);
     }
 
     private void Reproducir(GrupoSonido grupo, AudioSource fuente)

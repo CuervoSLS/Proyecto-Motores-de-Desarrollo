@@ -9,11 +9,16 @@ public class VolumeController : MonoBehaviour
     [SerializeField] private Slider sfxSlider;
     [SerializeField] private Slider musicSlider;
     [SerializeField] private Slider ambSlider;
+    [SerializeField] private Slider vozSlider;
+
+    //Rango del mixer para SFX (en dB)
+    private const float SFX_MIN_DB = -80f;
+    private const float SFX_MAX_DB = 10f;
 
     //Check para las "PlayerPrefs"
     private void Start()
     {
-        if (PlayerPrefs.HasKey("musicVolume") || PlayerPrefs.HasKey("sfxVolume") || PlayerPrefs.HasKey("ambVolume"))
+        if (PlayerPrefs.HasKey("musicVolume") || PlayerPrefs.HasKey("sfxVolume") || PlayerPrefs.HasKey("ambVolume") || PlayerPrefs.HasKey("vozVolume"))
         {
             LoadVolume();
         }
@@ -22,10 +27,11 @@ public class VolumeController : MonoBehaviour
             SetMusicVolume();
             SetSFXVolume();
             SetAmbVolume();
+            SetVozVolume();
         }
     }
 
-    //Set del volumen de cada canal ("Music", "SFX", "Ambience")
+    //Set del volumen de cada canal ("Music", "SFX", "Ambience", "Voz")
     public void SetMusicVolume()
     {
         float music = musicSlider.value;
@@ -36,7 +42,12 @@ public class VolumeController : MonoBehaviour
     public void SetSFXVolume()
     {
         float sfx = sfxSlider.value;
-        myMixer.SetFloat("sfx", Mathf.Log10(sfx) * 20);
+
+        // Slider (min a max) -> de -80 dB a +10 dB
+        float t = Mathf.InverseLerp(sfxSlider.minValue, sfxSlider.maxValue, sfx);
+        float sfxDb = Mathf.Lerp(SFX_MIN_DB, SFX_MAX_DB, t);
+
+        myMixer.SetFloat("sfx", sfxDb);
         PlayerPrefs.SetFloat("sfxVolume", sfx);
     }
 
@@ -47,15 +58,24 @@ public class VolumeController : MonoBehaviour
         PlayerPrefs.SetFloat("ambVolume", amb);
     }
 
+    public void SetVozVolume()
+    {
+        float voz = vozSlider.value;
+        myMixer.SetFloat("voz", Mathf.Log10(voz) * 20);
+        PlayerPrefs.SetFloat("vozVolume", voz);
+    }
+
     //Carga para el ajuste guardado del volumen, usando "PlayerPrefs"
     private void LoadVolume()
     {
-        musicSlider.value = PlayerPrefs.GetFloat("musicVolume");
-        sfxSlider.value = PlayerPrefs.GetFloat("sfxVolume");
-        ambSlider.value = PlayerPrefs.GetFloat("ambVolume");
+        musicSlider.value = PlayerPrefs.GetFloat("musicVolume", musicSlider.value);
+        sfxSlider.value = PlayerPrefs.GetFloat("sfxVolume", sfxSlider.value);
+        ambSlider.value = PlayerPrefs.GetFloat("ambVolume", ambSlider.value);
+        vozSlider.value = PlayerPrefs.GetFloat("vozVolume", vozSlider.value);
 
         SetMusicVolume();
         SetSFXVolume();
         SetAmbVolume();
+        SetVozVolume();
     }
 }
