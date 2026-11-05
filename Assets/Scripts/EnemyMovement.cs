@@ -4,7 +4,9 @@ using UnityEngine;
 public class EnemyMovement : MonoBehaviour
 {
     [SerializeField] private Transform target;
-    private Vector3 originalPosition;
+    [SerializeField] private Transform spawn;
+
+    private Animator anim;
     private bool move = false;
     private NavMeshAgent agent;
 
@@ -13,7 +15,7 @@ public class EnemyMovement : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        originalPosition = gameObject.transform.position;
+        anim = GetComponent<Animator>();
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         target = player.gameObject.transform;
         referenceReset = player.GetComponent<PlayerSpawn>();
@@ -29,6 +31,7 @@ public class EnemyMovement : MonoBehaviour
     {
         if(move == true)
         {
+            anim.SetBool("Moving", true);
             agent.SetDestination(target.position);
         }
     }
@@ -38,11 +41,11 @@ public class EnemyMovement : MonoBehaviour
     }
     public void StopMoving(bool reset)
     {
+        anim.SetBool("Moving", false);
         CancelInvoke("Move");
-        Debug.Log("Hola");
         move = false;
-        gameObject.transform.position = originalPosition;
-        agent.SetDestination(gameObject.transform.position);
+        agent.Warp(spawn.position);
+        agent.ResetPath();
         Invoke("Move", 5);
         Debug.Log("Hola2");
     }

@@ -4,6 +4,7 @@ using System.Collections;
 
 public enum OffMeshLinkMoveMethod
 {
+
     Teleport,
     NormalSpeed,
     Parabola,
@@ -13,17 +14,36 @@ public enum OffMeshLinkMoveMethod
 [RequireComponent(typeof(NavMeshAgent))]
 public class AgentLinkMover : MonoBehaviour
 {
+    [SerializeField] private Animator anim;
     public OffMeshLinkMoveMethod m_Method = OffMeshLinkMoveMethod.Parabola;
     public AnimationCurve m_Curve = new AnimationCurve();
+    private Coroutine currentLinkCoroutine;
 
+    public void StopLinkMovement(NavMeshAgent agent)
+    {
+        agent = GetComponent<NavMeshAgent>();
+        if (currentLinkCoroutine != null)
+        {
+            StopCoroutine(currentLinkCoroutine);
+            currentLinkCoroutine = null;
+        }
+
+        if (agent.isOnOffMeshLink)
+        {
+            agent.CompleteOffMeshLink();
+        }
+    }
     IEnumerator Start()
     {
+        GameObject enemy = GameObject.FindGameObjectWithTag("Enemy");
+        anim = enemy.GetComponent<Animator>();
         NavMeshAgent agent = GetComponent<NavMeshAgent>();
         agent.autoTraverseOffMeshLink = false;
         while (true)
         {
             if (agent.isOnOffMeshLink)
             {
+                anim.SetBool("Falling", true);
                 if (m_Method == OffMeshLinkMoveMethod.NormalSpeed)
                     yield return StartCoroutine(NormalSpeed(agent));
                 else if (m_Method == OffMeshLinkMoveMethod.Parabola)
@@ -31,6 +51,7 @@ public class AgentLinkMover : MonoBehaviour
                 else if (m_Method == OffMeshLinkMoveMethod.Curve)
                     yield return StartCoroutine(Curve(agent, 0.5f));
                 agent.CompleteOffMeshLink();
+                anim.SetBool("Falling", false);
             }
             yield return null;
         }
@@ -47,7 +68,7 @@ public class AgentLinkMover : MonoBehaviour
         }
     }
 
-    IEnumerator Parabola(NavMeshAgent agent, float height, float duration)
+    IEnumerator Parabola(NavMeshAgent agent, float height = 8, float duration = 0)
     {
         OffMeshLinkData data = agent.currentOffMeshLinkData;
         Vector3 startPos = agent.transform.position;
@@ -57,7 +78,7 @@ public class AgentLinkMover : MonoBehaviour
         {
             float yOffset = height * 4.0f * (normalizedTime - normalizedTime * normalizedTime);
             agent.transform.position = Vector3.Lerp(startPos, endPos, normalizedTime) + yOffset * Vector3.up;
-            normalizedTime += Time.deltaTime / duration;
+            normalizedTime += Time.deltaTime / 2.5f;
             yield return null;
         }
     }
