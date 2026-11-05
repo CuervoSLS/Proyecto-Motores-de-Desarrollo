@@ -58739,14 +58739,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 2570894521186108235, guid: 36515df0918e16f42a335b58a3e926cb, type: 3}
-      propertyPath: m_Volume
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2570894521186108235, guid: 36515df0918e16f42a335b58a3e926cb, type: 3}
-      propertyPath: panLevelCustomCurve.m_Curve.Array.data[0].value
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 2785272525173798317, guid: 36515df0918e16f42a335b58a3e926cb, type: 3}
       propertyPath: m_Name
       value: Torch
