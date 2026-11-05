@@ -7,6 +7,7 @@ TagManager:
   - Cuerda
   - Flecha
   - Reliquia
+  - Enemy
   layers:
   - Default
   - TransparentFX
