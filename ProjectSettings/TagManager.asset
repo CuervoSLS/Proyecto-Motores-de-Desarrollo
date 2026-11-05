@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Cuerda
   - Flecha
+  - Reliquia
   layers:
   - Default
   - TransparentFX
