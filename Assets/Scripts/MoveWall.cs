@@ -11,9 +11,11 @@ public class MoveWall : MonoBehaviour
 
     [SerializeField] float movementZ;
     private Vector3 originalPosition;
+    private AudioSource audioSource;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        audioSource = GetComponent<AudioSource>();
         originalPosition = gameObject.transform.position;
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         referenceReset = player.GetComponent<PlayerSpawn>();
@@ -34,7 +36,14 @@ public class MoveWall : MonoBehaviour
     void StartSequence(bool start)
     {
         move = true;
+        Reproducir();
+        CancelInvoke("Reproducir");
+        Invoke("Reproducir", 3);
         Invoke("StopMoving", 5);
+    }
+    public void Reproducir()
+    {
+        audioSource.Play();
     }
     void Reset(bool stop)
     {
