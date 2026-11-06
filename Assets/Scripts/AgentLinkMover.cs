@@ -19,9 +19,9 @@ public class AgentLinkMover : MonoBehaviour
     public AnimationCurve m_Curve = new AnimationCurve();
     private Coroutine currentLinkCoroutine;
 
-    public void StopLinkMovement(NavMeshAgent agent)
+    public void StopLinkMovement()
     {
-        agent = GetComponent<NavMeshAgent>();
+        NavMeshAgent agent = GetComponent<NavMeshAgent>();
         if (currentLinkCoroutine != null)
         {
             StopCoroutine(currentLinkCoroutine);

@@ -38,15 +38,20 @@ public class EnemyMovement : MonoBehaviour
     public void Move()
     {
         move = true;
+        transform.position = spawn.position;
     }
     public void StopMoving(bool reset)
     {
         anim.SetBool("Moving", false);
+
         CancelInvoke("Move");
         move = false;
-        agent.Warp(spawn.position);
+
         agent.ResetPath();
+        agent.Warp(spawn.position);
+
         Invoke("Move", 5);
+
         Debug.Log("Hola2");
     }
     public void StartSequence(bool start)
