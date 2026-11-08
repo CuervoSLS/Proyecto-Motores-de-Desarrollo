@@ -52,7 +52,6 @@ public class EnemyMovement : MonoBehaviour
 
         Invoke("Move", 5);
 
-        Debug.Log("Hola2");
     }
     public void StartSequence(bool start)
     {

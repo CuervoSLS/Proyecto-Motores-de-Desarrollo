@@ -5516,6 +5516,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2786795172292634333, guid: 36515df0918e16f42a335b58a3e926cb, type: 3}
   m_PrefabInstance: {fileID: 1453361212}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &265244309
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 265244310}
+  m_Layer: 0
+  m_Name: Spawn
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &265244310
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 265244309}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.6879505, z: -0, w: 0.72575766}
+  m_LocalPosition: {x: -181.75, y: -16.67, z: -17.301888}
+  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!43 &269466328
 Mesh:
   m_ObjectHideFlags: 0
@@ -17268,6 +17299,10 @@ PrefabInstance:
     - target: {fileID: 2534946619398074970, guid: ea6b21ddafbbfff478ce4d04dd55b564, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3547442683465512524, guid: ea6b21ddafbbfff478ce4d04dd55b564, type: 3}
+      propertyPath: m_Size.x
+      value: 14
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -39569,7 +39604,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 711949208}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.121490106, y: 0.0000058944524, z: -0.0000007214618, w: 0.99259263}
+  m_LocalRotation: {x: 0.12146598, y: -2.6123116e-11, z: 3.1967395e-12, w: 0.9925956}
   m_LocalPosition: {x: -7.1300697, y: 2.0872188, z: -139.8446}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -59685,15 +59720,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3515561633379582246, guid: e07a56d7e5dddb04c855564f7a2763ad, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 3515561633379582246, guid: e07a56d7e5dddb04c855564f7a2763ad, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 3515561633379582246, guid: e07a56d7e5dddb04c855564f7a2763ad, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 3515561633379582246, guid: e07a56d7e5dddb04c855564f7a2763ad, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -75653,7 +75688,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1824698165}
         m_TargetAssemblyTypeName: MenuPausa, Assembly-CSharp
         m_MethodName: IrAlMenuPrincipal
         m_Mode: 1
@@ -75665,7 +75700,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 1
         m_CallState: 2
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1420679410}
         m_TargetAssemblyTypeName: SonidoBotones, Assembly-CSharp
         m_MethodName: ReproducirSonido
         m_Mode: 1
@@ -98887,8 +98922,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0df6120ce8c17a24f8e67396132e64e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyMovement
-  target: {fileID: 0}
-  spawn: {fileID: 0}
+  target: {fileID: 1668326079}
+  spawn: {fileID: 265244310}
 --- !u!114 &1668326074
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -98937,16 +98972,16 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 0.5
-  m_Speed: 8
-  m_Acceleration: 8
+  m_Speed: 10
+  m_Acceleration: 100
   avoidancePriority: 50
   m_AngularSpeed: 120
   m_StoppingDistance: 0
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
   m_AutoRepath: 1
-  m_Height: 0.99999994
-  m_BaseOffset: 0.49999997
+  m_Height: 1
+  m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
 --- !u!114 &1668326076
@@ -98986,6 +99021,11 @@ BoxCollider:
 --- !u!95 &1668326078 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 5217009034759064855, guid: 61b3e3801d56a3f429556c96ea2f07d6, type: 3}
+  m_PrefabInstance: {fileID: 1276974852}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1668326079 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2199628841774520173, guid: 61b3e3801d56a3f429556c96ea2f07d6, type: 3}
   m_PrefabInstance: {fileID: 1276974852}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &1675553798
@@ -109747,7 +109787,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2000257243}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.12149011, y: 0.0000058944383, z: -0.0000007214598, w: 0.99259263}
+  m_LocalRotation: {x: 0.12146597, y: -2.625916e-11, z: 4.308487e-12, w: 0.9925956}
   m_LocalPosition: {x: -7.130005, y: 2.4940162, z: -141.48299}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -117049,5 +117089,6 @@ SceneRoots:
   - {fileID: 1153004915}
   - {fileID: 352579182}
   - {fileID: 1312590904}
+  - {fileID: 265244310}
   - {fileID: 1276974852}
   - {fileID: 682021733}
